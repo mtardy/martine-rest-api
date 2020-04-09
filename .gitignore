@@ -1,6 +1,8 @@
 out/
 .DS_Store
 
+deploy.sh
+
 # Maven
 target/
 pom.xml.tag

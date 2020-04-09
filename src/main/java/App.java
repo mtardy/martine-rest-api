@@ -7,14 +7,13 @@ import javax.ws.rs.core.Application;
 import java.util.HashSet;
 import java.util.Set;
 
-@ApplicationPath("/api")
+@ApplicationPath("/v1")
 public class App extends Application {
 
     public App(){
         BeanConfig beanConfig = new BeanConfig();
         beanConfig.setVersion("1.0.0");
-        beanConfig.setHost("localhost:8080");
-        beanConfig.setBasePath("/backend/api");
+        beanConfig.setBasePath("/api/v1");
         beanConfig.setTitle("Les recettes de Martine API");
         beanConfig.setDescription("Bienvenue sur l'API REST des recettes de Martine!");
         beanConfig.setScan(true);
