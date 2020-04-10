@@ -118,6 +118,13 @@ public class RecetteAPI {
 
             // INGREDIENT
             Ingredient ingredient = element.getIngredient();
+            if (element.getIngredient() == null) {
+                return Response
+                        .status(Response.Status.BAD_REQUEST)
+                        .entity(new ElementMalformeErreur(i, "Ingrédient est null"))
+                        .build();
+            }
+
             // Vérifie si la string est null
             if (element.getIngredient().getNom() == null) {
                 return Response
