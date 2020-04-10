@@ -1,10 +1,9 @@
 package api;
 
+import Erreurs.ApiErreur;
+import Erreurs.ElementMalformeErreur;
 import io.swagger.annotations.*;
-import models.Element;
-import models.Ingredient;
-import models.Quantite;
-import models.Recette;
+import models.*;
 import models.format.RecetteCompact;
 
 import javax.ejb.Singleton;
@@ -95,6 +94,7 @@ public class RecetteAPI {
     @POST
     @Path("/")
     @Consumes({ "application/json" })
+    @Produces({ "application/json" })
     @ApiOperation(value = "Ajouter une recette")
     @ApiResponses({
             @ApiResponse(code = 201, message = "Succès de l'ajout de la recette")
@@ -111,6 +111,20 @@ public class RecetteAPI {
             // Vérifie si l'ingrédient existe déjà
             // Dans ce cas c'est facile car la clé est le nom de l'ingrédient
             Ingredient ingredient = element.getIngredient();
+            // Vérifie si la string est valide
+            if (element.getIngredient().getNom() == "") {
+                return Response
+                        .status(Response.Status.BAD_REQUEST)
+                        .entity(new ElementMalformeErreur(i, "Nom d'ingrédient est une chaîne de caractère vide"))
+                        .build();
+            }
+            if (element.getIngredient().getNom() == null) {
+                return Response
+                        .status(Response.Status.BAD_REQUEST)
+                        .entity(new ElementMalformeErreur(i, "Nom d'ingrédient est null"))
+                        .build();
+            }
+            // Vérifie si la string est vide
             if (em.find(Ingredient.class, ingredient.getNom()) == null) {
                 em.persist(ingredient);
                 nouvelElement = true;
@@ -134,7 +148,9 @@ public class RecetteAPI {
             }
 
             // Si jamais l'elément existait déjà
-            if (!nouvelElement) {
+            if (nouvelElement) {
+                em.persist(element);
+            } else {
                 // On essai de récupérer l'élement
                 Element e = em.createQuery("SELECT e FROM Element e WHERE e.ingredient = :custIngredient AND e.quantite = :custQuantite", Element.class)
                         .setParameter("custIngredient", element.getIngredient())
@@ -142,8 +158,6 @@ public class RecetteAPI {
                         .getSingleResult();
                 // On le lie dans la nouvelle liste d'élements
                 listElements.set(i, e);
-            } else {
-                em.persist(element);
             }
         }
 
@@ -154,6 +168,7 @@ public class RecetteAPI {
     @DELETE
     @Path("/{id}")
     @Consumes({ "application/json" })
+    @Produces({ "application/json" })
     @ApiOperation(value = "Supprimer une recette")
     @ApiResponses({
             @ApiResponse(code = 204, message = "Succès de la suppression de la recette"),
