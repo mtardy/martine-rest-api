@@ -2,6 +2,7 @@ package api;
 
 import Erreurs.ApiErreur;
 import Erreurs.ElementMalformeErreur;
+import Erreurs.ElementsManquantErreur;
 import io.swagger.annotations.*;
 import models.*;
 import models.format.RecetteCompact;
@@ -101,6 +102,13 @@ public class RecetteAPI {
     })
     public Response ajouter(
             @ApiParam(value = "Recette à ajouter", required = true) Recette recette) {
+
+        if (recette.getElements() == null) {
+            return Response
+                    .status(Response.Status.BAD_REQUEST)
+                    .entity(new ElementsManquantErreur())
+                    .build();
+        }
         ArrayList<Element> listElements = (ArrayList<Element>) recette.getElements();
         boolean nouvelElement;
 
@@ -108,16 +116,9 @@ public class RecetteAPI {
             nouvelElement = false;
             Element element = listElements.get(i);
 
-            // Vérifie si l'ingrédient existe déjà
-            // Dans ce cas c'est facile car la clé est le nom de l'ingrédient
+            // INGREDIENT
             Ingredient ingredient = element.getIngredient();
-            // Vérifie si la string est valide
-            if (element.getIngredient().getNom() == "") {
-                return Response
-                        .status(Response.Status.BAD_REQUEST)
-                        .entity(new ElementMalformeErreur(i, "Nom d'ingrédient est une chaîne de caractère vide"))
-                        .build();
-            }
+            // Vérifie si la string est null
             if (element.getIngredient().getNom() == null) {
                 return Response
                         .status(Response.Status.BAD_REQUEST)
@@ -125,6 +126,15 @@ public class RecetteAPI {
                         .build();
             }
             // Vérifie si la string est vide
+            if (element.getIngredient().getNom() == "") {
+                return Response
+                        .status(Response.Status.BAD_REQUEST)
+                        .entity(new ElementMalformeErreur(i, "Nom d'ingrédient est une chaîne de caractère vide"))
+                        .build();
+            }
+
+            // Vérifie si l'ingrédient existe déjà
+            // Dans ce cas c'est facile car la clé est le nom de l'ingrédient
             if (em.find(Ingredient.class, ingredient.getNom()) == null) {
                 em.persist(ingredient);
                 nouvelElement = true;
@@ -132,16 +142,41 @@ public class RecetteAPI {
                 em.merge(ingredient);
             }
 
+            // QUANTITE
+            Quantite quantite = element.getQuantite();
+
+            if (quantite == null) {
+                // Remplacer par une quantité avec les propriétés à null
+                element.setQuantite(new Quantite());
+                quantite = element.getQuantite();
+            }
+
             // Vérifie si la quantité existe déjà
             // Ici on crée une requête personnalisée et on lie l'objet si on le trouve
-            Quantite quantite = element.getQuantite();
             try {
                 // On essai de récupérer la quantité
-                Quantite q = em.createQuery("SELECT q FROM Quantite q WHERE q.nombre = :custNombre AND q.unite = :custUnite", Quantite.class)
-                        .setParameter("custNombre", quantite.getNombre())
-                        .setParameter("custUnite", quantite.getUnite())
-                        .getSingleResult();
-                element.setQuantite(q);
+                CriteriaBuilder cb = this.em.getCriteriaBuilder();
+                CriteriaQuery<Quantite> q = cb.createQuery(Quantite.class);
+                Root<Quantite> r = q.from(Quantite.class);
+                q.select(r);
+
+                Predicate nombrePredicate;
+                Predicate quantitePredicate;
+
+                if (quantite.getNombre() == null) {
+                    nombrePredicate = cb.isNull(r.get("nombre"));
+                } else {
+                    nombrePredicate = cb.equal(r.get("nombre"), quantite.getNombre());
+                }
+
+                if (quantite.getUnite() == null) {
+                    quantitePredicate = cb.isNull(r.get("unite"));
+                } else {
+                    quantitePredicate = cb.equal(r.get("unite"), quantite.getUnite());
+                }
+
+                TypedQuery<Quantite> query = em.createQuery(q.where(cb.and(nombrePredicate, quantitePredicate)));
+                element.setQuantite(query.getSingleResult());
             } catch (NoResultException e) {
                 em.persist(quantite);
                 nouvelElement = true;

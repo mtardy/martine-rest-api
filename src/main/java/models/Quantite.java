@@ -3,21 +3,18 @@ package models;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Entity
 @ApiModel(description = "La quantité associée à un ingrédient")
 public class Quantite {
     @Id
-    @GeneratedValue(strategy= GenerationType.AUTO)
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
     @ApiModelProperty(hidden = true)
     private int id;
 
     @ApiModelProperty(value = "Le nombre associé à cette quantité", example = "4")
-    private int nombre;
+    private Integer nombre;
 
     @ApiModelProperty(value = "L'unité de la quantité", example = "cuillère")
     private String unite;
@@ -30,11 +27,11 @@ public class Quantite {
         this.id = id;
     }
 
-    public int getNombre() {
+    public Integer getNombre() {
         return nombre;
     }
 
-    public void setNombre(int nombre) {
+    public void setNombre(Integer nombre) {
         this.nombre = nombre;
     }
 

@@ -8,7 +8,7 @@ import java.util.Collection;
 @Entity
 public class Recette {
     @Id
-    @GeneratedValue(strategy= GenerationType.AUTO)
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
     @ApiModelProperty(hidden = true)
     private int id;
 

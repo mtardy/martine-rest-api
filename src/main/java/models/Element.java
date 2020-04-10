@@ -1,5 +1,6 @@
 package models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
@@ -10,15 +11,15 @@ import javax.ws.rs.OPTIONS;
 @ApiModel(description = "Un élement d'une recette est composé d'un ingrédient et de sa quantité")
 public class Element {
     @Id
-    @GeneratedValue(strategy= GenerationType.AUTO)
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
     @ApiModelProperty(hidden = true)
     private int id;
 
-    @OneToOne(optional = false)
+    @ManyToOne(optional = false)
     @ApiModelProperty(required = true)
     private Ingredient ingredient;
 
-    @OneToOne(optional = false)
+    @ManyToOne(optional = false)
     private Quantite quantite;
 
     public Ingredient getIngredient() {
