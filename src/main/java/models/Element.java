@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.persistence.*;
+import javax.ws.rs.OPTIONS;
 
 @Entity
 @ApiModel(description = "Un élement d'une recette est composé d'un ingrédient et de sa quantité")
@@ -13,11 +14,11 @@ public class Element {
     @ApiModelProperty(hidden = true)
     private int id;
 
-    @ManyToOne
+    @OneToOne(optional = false)
     @ApiModelProperty(required = true)
     private Ingredient ingredient;
 
-    @ManyToOne
+    @OneToOne(optional = false)
     private Quantite quantite;
 
     public Ingredient getIngredient() {
