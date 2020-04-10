@@ -15,6 +15,9 @@ public class Recette {
     @ApiModelProperty(value = "Le nom de la recette", example = "Pizza", required = true)
     private String nom;
 
+    @ApiModelProperty(value = "La description de la recette", example = "Ceci est la recette de mon grand-père...")
+    private String description;
+
     // ManyToMany au lieu de OneToMany car un même élément peut appartenir à plusieurs recettes.
     @ManyToMany(fetch = FetchType.EAGER)
     private Collection<Element> elements;
@@ -42,5 +45,13 @@ public class Recette {
 
     public void setElements(Collection<Element> listeElements) {
         this.elements = listeElements;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }
