@@ -3,6 +3,9 @@ package models;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.persistence.*;
+import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.util.Collection;
 
 @Entity
@@ -13,6 +16,7 @@ public class Recette {
     private int id;
 
     @ApiModelProperty(value = "Le nom de la recette", example = "Pizza", required = true)
+    @NotBlank(message = "Le nom d'une recette ne peut pas être null, vide ou composé uniquement de caractères blancs")
     private String nom;
 
     @ApiModelProperty(value = "La description de la recette", example = "Ceci est la recette de mon grand-père...")
@@ -20,6 +24,8 @@ public class Recette {
 
     // ManyToMany au lieu de OneToMany car un même élément peut appartenir à plusieurs recettes.
     @ManyToMany(fetch = FetchType.EAGER)
+    @NotNull(message = "Les éléments d'une recette ne peuvent pas être null")
+    @Valid
     private Collection<Element> elements;
 
 

@@ -1,11 +1,11 @@
 package models;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import javax.persistence.*;
-import javax.ws.rs.OPTIONS;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 @Entity
 @ApiModel(description = "Un élement d'une recette est composé d'un ingrédient et de sa quantité")
@@ -17,9 +17,12 @@ public class Element {
 
     @ManyToOne(optional = false)
     @ApiModelProperty(required = true)
+    @NotNull(message = "L'ingrédient d'un élément ne peut pas être null")
+    @Valid
     private Ingredient ingredient;
 
     @ManyToOne(optional = false)
+    @Valid
     private Quantite quantite;
 
     public Ingredient getIngredient() {

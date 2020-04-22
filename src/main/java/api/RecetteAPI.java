@@ -1,10 +1,10 @@
 package api;
 
-import Erreurs.ApiErreur;
-import Erreurs.ElementMalformeErreur;
-import Erreurs.ElementsManquantErreur;
 import io.swagger.annotations.*;
-import models.*;
+import models.Element;
+import models.Ingredient;
+import models.Quantite;
+import models.Recette;
 import models.format.RecetteCompact;
 
 import javax.ejb.Singleton;
@@ -16,6 +16,8 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
@@ -101,14 +103,9 @@ public class RecetteAPI {
             @ApiResponse(code = 201, message = "Succès de l'ajout de la recette")
     })
     public Response ajouter(
-            @ApiParam(value = "Recette à ajouter", required = true) Recette recette) {
-
-        if (recette.getElements() == null) {
-            return Response
-                    .status(Response.Status.BAD_REQUEST)
-                    .entity(new ElementsManquantErreur())
-                    .build();
-        }
+            @Valid @NotNull(message = "La recette ne peut pas être null")
+            @ApiParam(value = "Recette à ajouter", required = true) Recette recette
+    ) {
         ArrayList<Element> listElements = (ArrayList<Element>) recette.getElements();
         boolean nouvelElement;
 
@@ -118,28 +115,6 @@ public class RecetteAPI {
 
             // INGREDIENT
             Ingredient ingredient = element.getIngredient();
-            if (element.getIngredient() == null) {
-                return Response
-                        .status(Response.Status.BAD_REQUEST)
-                        .entity(new ElementMalformeErreur(i, "Ingrédient est null"))
-                        .build();
-            }
-
-            // Vérifie si la string est null
-            if (element.getIngredient().getNom() == null) {
-                return Response
-                        .status(Response.Status.BAD_REQUEST)
-                        .entity(new ElementMalformeErreur(i, "Nom d'ingrédient est null"))
-                        .build();
-            }
-            // Vérifie si la string est vide
-            if (element.getIngredient().getNom() == "") {
-                return Response
-                        .status(Response.Status.BAD_REQUEST)
-                        .entity(new ElementMalformeErreur(i, "Nom d'ingrédient est une chaîne de caractère vide"))
-                        .build();
-            }
-
             // Vérifie si l'ingrédient existe déjà
             // Dans ce cas c'est facile car la clé est le nom de l'ingrédient
             if (em.find(Ingredient.class, ingredient.getNom()) == null) {
@@ -211,12 +186,14 @@ public class RecetteAPI {
     @Path("/{id}")
     @Consumes({ "application/json" })
     @Produces({ "application/json" })
-    @ApiOperation(value = "Supprimer une recette")
+    @ApiOperation(value = "Supprimer une recette", authorizations = {
+            @Authorization(value = "basicAuth")
+    })
     @ApiResponses({
             @ApiResponse(code = 204, message = "Succès de la suppression de la recette"),
             @ApiResponse(code = 404, message = "Recette introuvable")
     })
-    public Response supprimer(@PathParam("id") int id) {
+    public Response supprimer(@ApiParam(value="identifiant de la recette") @PathParam("id") int id) {
         Recette r = em.find(Recette.class, id);
         if (r != null) {
             em.remove(r);

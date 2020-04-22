@@ -1,6 +1,10 @@
 import api.Ping;
 import api.RecetteAPI;
+import api.UtilisateursAPI;
 import io.swagger.jaxrs.config.BeanConfig;
+import io.swagger.jaxrs.config.SwaggerContextService;
+import io.swagger.models.Swagger;
+import io.swagger.models.auth.BasicAuthDefinition;
 import org.jboss.resteasy.plugins.interceptors.CorsFilter;
 
 import javax.ws.rs.ApplicationPath;
@@ -20,6 +24,11 @@ public class App extends Application {
         beanConfig.setTitle("Les recettes de Martine API");
         beanConfig.setDescription("Bienvenue sur l'API REST des recettes de Martine!");
         beanConfig.setScan(true);
+        //beanConfig.setSchemes(new String[]{"HTTPS", "HTTP"});
+
+        Swagger swagger = new Swagger();
+        swagger.securityDefinition("basicAuth", new BasicAuthDefinition());
+        new SwaggerContextService().updateSwagger(swagger);
 
         CorsFilter corsFilter = new CorsFilter();
         corsFilter.getAllowedOrigins().add("*");
@@ -38,6 +47,7 @@ public class App extends Application {
 
         resources.add(Ping.class);
         resources.add(RecetteAPI.class);
+        resources.add(UtilisateursAPI.class);
 
         resources.add(io.swagger.jaxrs.listing.ApiListingResource.class);
         resources.add(io.swagger.jaxrs.listing.SwaggerSerializers.class);
