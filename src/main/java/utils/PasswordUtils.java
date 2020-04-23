@@ -1,9 +1,12 @@
 package utils;
 
 import Erreurs.InvalidAuthorizationException;
+import models.Utilisateur;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
+import javax.persistence.EntityManager;
+import javax.ws.rs.NotFoundException;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -72,6 +75,24 @@ public class PasswordUtils {
             }
         } catch (Exception e) {
             throw new InvalidAuthorizationException(e);
+        }
+    }
+
+    public static Optional<Utilisateur> authentifierUtilisateur(String authorization, EntityManager em) throws InvalidAuthorizationException, NotFoundException {
+        String ID = PasswordUtils.decodeAuthorization(authorization);
+        String[] splittedID = ID.split(":");
+        String username = splittedID[0];
+        String password = splittedID[1];
+
+        Utilisateur u = em.find(Utilisateur.class, username);
+        if (u != null) {
+            if (PasswordUtils.verifyPassword(password, u.getHash(), u.getSalt())) {
+                return Optional.of(u);
+            } else {
+                return Optional.empty();
+            }
+        } else {
+            throw new NotFoundException();
         }
     }
 }

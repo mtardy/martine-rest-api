@@ -49,6 +49,8 @@ public class App extends Application {
         resources.add(RecetteAPI.class);
         resources.add(UtilisateursAPI.class);
 
+        resources.add(JacksonConfig.class);
+
         resources.add(io.swagger.jaxrs.listing.ApiListingResource.class);
         resources.add(io.swagger.jaxrs.listing.SwaggerSerializers.class);
 

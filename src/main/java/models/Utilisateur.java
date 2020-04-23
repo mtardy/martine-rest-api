@@ -1,28 +1,40 @@
 package models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import org.hibernate.annotations.LazyCollection;
+import org.hibernate.annotations.LazyCollectionOption;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.URL;
 
 import javax.persistence.Entity;
+import javax.persistence.EntityManager;
 import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.validation.Valid;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 
 @Entity
 @ApiModel(description = "La quantité associée à un ingrédient")
+@JsonIgnoreProperties({ "hash", "salt" })
 public class Utilisateur {
     @Id
     @ApiModelProperty(value = "Le pseudo de l'utilisateur")
     @NotBlank(message = "Le username ne peut être null, vide ou contenir uniquement des caractères blancs")
     private String username;
 
-    @ApiModelProperty(value = "Le hash du mot de passe de l'utilisateur")
+    @ApiModelProperty(value = "Le hash du mot de passe de l'utilisateur", hidden = true)
     @NotBlank(message = "Le hash ne peut être null, vide ou contenir uniquement des caractères blancs")
     private String hash;
 
-    @ApiModelProperty(value = "Le salt de l'utilisateur")
+    @ApiModelProperty(value = "Le salt de l'utilisateur", hidden = true)
     @NotBlank(message = "Le salt ne peut être null, vide ou contenir uniquement des caractères blancs")
     private String salt;
 
@@ -39,10 +51,30 @@ public class Utilisateur {
     @Email
     private String email;
 
+    @ApiModelProperty(value = "La date d'inscription de l'utilisateur")
+    @NotNull
+    private LocalDateTime dateInscription;
+
+    @ApiModelProperty(value = "La date de la dernière modification")
+    @NotNull
+    private LocalDateTime dateModification;
+
     @ApiModelProperty(value = "Le lien vers une photo de l'utilisateur'")
     @Length(max = 255)
     @URL
     private String photo;
+
+    @ApiModelProperty(value = "La liste des commentaires de l'utilisateur")
+    @OneToMany
+    @LazyCollection(LazyCollectionOption.FALSE)
+    @Valid
+    private Collection<Commentaire> commentaires;
+
+    @ApiModelProperty(value = "La liste des recettes de l'utilisateur")
+    @OneToMany
+    @LazyCollection(LazyCollectionOption.FALSE)
+    @Valid
+    private Collection<Recette> recettes;
 
     public Utilisateur(String username,
                        String hash,
@@ -50,7 +82,8 @@ public class Utilisateur {
                        String fullname,
                        String biographie,
                        String email,
-                       String photo) {
+                       String photo,
+                       LocalDateTime dateInscription) {
         this.username = username;
         this.hash = hash;
         this.salt = salt;
@@ -58,6 +91,50 @@ public class Utilisateur {
         this.biographie = biographie;
         this.email = email;
         this.photo = photo;
+        this.dateInscription = dateInscription;
+
+        this.commentaires = new ArrayList<>();
+    }
+
+    public void remove(EntityManager em) {
+        removeCommentaires(em);
+        removeRecettes(em);
+        em.remove(this);
+    }
+
+    private void removeCommentaires(EntityManager em) {
+        for (Iterator<Commentaire> iterator = commentaires.iterator(); iterator.hasNext();) {
+            Commentaire commentaire = iterator.next();
+            Recette r = em.find(Recette.class, commentaire.getRecetteId());
+            r.removeCommentaire(commentaire);
+            iterator.remove();
+            em.remove(commentaire);
+        }
+    }
+
+    private void removeRecettes(EntityManager em) {
+        for (Iterator<Recette> iterator = recettes.iterator(); iterator.hasNext();) {
+            Recette recette = iterator.next();
+            Recette r = em.find(Recette.class, recette.getId());
+            iterator.remove();
+            em.remove(recette);
+        }
+    }
+
+    public void addRecette(Recette recette) {
+        this.recettes.add(recette);
+    }
+
+    public void removeRecette(Recette recette) {
+        this.recettes.remove(recette);
+    }
+
+    public void addCommentaire(Commentaire commentaire) {
+        this.commentaires.add(commentaire);
+    }
+
+    public void removeCommentaire(Commentaire commentaire) {
+        this.commentaires.remove(commentaire);
     }
 
     public Utilisateur() {
@@ -117,5 +194,37 @@ public class Utilisateur {
 
     public void setPhoto(String photo) {
         this.photo = photo;
+    }
+
+    public LocalDateTime getDateInscription() {
+        return dateInscription;
+    }
+
+    public void setDateInscription(LocalDateTime dateInscription) {
+        this.dateInscription = dateInscription;
+    }
+
+    public Collection<Commentaire> getCommentaires() {
+        return commentaires;
+    }
+
+    public void setCommentaires(Collection<Commentaire> commentaires) {
+        this.commentaires = commentaires;
+    }
+
+    public void setRecettes(Collection<Recette> recettes) {
+        this.recettes = recettes;
+    }
+
+    public Collection<Recette> getRecettes() {
+        return recettes;
+    }
+
+    public LocalDateTime getDateModification() {
+        return dateModification;
+    }
+
+    public void setDateModification(LocalDateTime dateModification) {
+        this.dateModification = dateModification;
     }
 }

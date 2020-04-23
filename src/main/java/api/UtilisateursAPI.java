@@ -18,6 +18,8 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -72,7 +74,9 @@ public class UtilisateursAPI {
         String salt = PasswordUtils.generateSalt(this.SALT_BYTE_LENGTH).get();
         String hash = PasswordUtils.hashPassword(password, salt).get();
 
-        Utilisateur newUser = new Utilisateur(username, hash, salt, fullname, biographie, email, photo);
+        LocalDateTime dateInscription = LocalDateTime.now(ZoneId.of("Europe/Paris"));
+        Utilisateur newUser = new Utilisateur(username, hash, salt, fullname, biographie, email, photo, dateInscription);
+        newUser.setDateModification(dateInscription);
 
         Utilisateur u = em.find(Utilisateur.class, newUser.getUsername());
         if (u != null) {
@@ -102,26 +106,44 @@ public class UtilisateursAPI {
             @ApiResponse(code = 404, message = "Utilisateur introuvable")
     })
     public Response modifier(
-            @Length(min = 1, max = 255)
-            @NotBlank(message = "Le password ne peut être null, vide ou contenir uniquement des caractères blancs")
-            @ApiParam(value = "Le nouveau mot de passe en clair") @FormParam("password") String password,
-            @Length(min = 1, max = 255)
-            @NotBlank(message = "Le fullname ne peut être null, vide ou contenir uniquement des caractères blancs")
-            @ApiParam(value = "Le nouveau nom complet") @FormParam("fullname") String fullname,
+            @Length(max = 255) @ApiParam(value = "Le nouveau mot de passe en clair") @FormParam("password") String password,
+            @Length(max = 255) @ApiParam(value = "Le nouveau nom complet") @FormParam("fullname") String fullname,
+            @Length(max = 512) @ApiParam(value = "La nouvelle biographie") @FormParam("biographie") String biographie,
+            @Length(max = 255) @URL @ApiParam(value = "Le lien vers la nouvelle photo") @FormParam("photo") String photo,
+            @Length(max = 255) @Email @ApiParam(value = "Le nouvel email") @FormParam("email") String email,
             @ApiParam(value = "Le format est \"Basic <username:password in base64>\"") @HeaderParam("authorization") String authorization,
-            @NotBlank @PathParam("username") String username) {
+            @ApiParam(value = "Le username de l'utilisateur à modifier") @NotBlank @PathParam("username") String username) {
         try {
-            Optional<Utilisateur> u = authentifierUtilisateur(authorization);
+            Optional<Utilisateur> u = PasswordUtils.authentifierUtilisateur(authorization, em);
             if (u.isPresent()) {
                 Utilisateur userToModify = em.find(Utilisateur.class, username);
                 if (hasPermissionToManage(u.get(), userToModify)) {
                     if (userToModify != null) {
+                        boolean modification = false;
                         if (password != null) {
                             String hash = PasswordUtils.hashPassword(password, userToModify.getSalt()).get();
                             userToModify.setHash(hash);
+                            modification = true;
                         }
                         if (fullname != null) {
                             userToModify.setFullname(fullname);
+                            modification = true;
+                        }
+                        if (biographie != null) {
+                            userToModify.setBiographie(biographie);
+                            modification = true;
+                        }
+                        if (photo != null) {
+                            userToModify.setPhoto(photo);
+                            modification = true;
+                        }
+                        if (email != null) {
+                            userToModify.setEmail(email);
+                            modification = true;
+                        }
+
+                        if (modification) {
+                            userToModify.setDateModification(LocalDateTime.now(ZoneId.of("Europe/Paris")));
                         }
                         return Response.status(Response.Status.NO_CONTENT).build();
                     } else {
@@ -155,14 +177,14 @@ public class UtilisateursAPI {
     })
     public Response supprimer(
             @ApiParam(value = "Le format est \"Basic <username:password in base64>\"") @HeaderParam("authorization") String authorization,
-            @NotBlank @PathParam("username") String username) {
+            @ApiParam(value = "Le username de l'utilisateur à supprimer") @NotBlank @PathParam("username") String username) {
         try {
-            Optional<Utilisateur> u = authentifierUtilisateur(authorization);
+            Optional<Utilisateur> u = PasswordUtils.authentifierUtilisateur(authorization, em);
             if (u.isPresent()) {
                 Utilisateur userToRemove = em.find(Utilisateur.class, username);
                 if (userToRemove != null) {
                     if (hasPermissionToManage(u.get(), userToRemove)) {
-                        em.remove(userToRemove);
+                        userToRemove.remove(em);
                         return Response.status(Response.Status.NO_CONTENT).build();
                     } else {
                         return Response.status(Response.Status.UNAUTHORIZED).build();
@@ -195,9 +217,9 @@ public class UtilisateursAPI {
     })
     public Response recuperer(
             @ApiParam(value = "Le format est \"Basic <username:password in base64>\"") @HeaderParam("authorization") String authorization,
-            @NotBlank() @PathParam("username") String username) {
+            @ApiParam(value = "Le username de l'utilisateur dont on veut récupérer les informations") @NotBlank() @PathParam("username") String username) {
         try {
-            Optional<Utilisateur> u = authentifierUtilisateur(authorization);
+            Optional<Utilisateur> u = PasswordUtils.authentifierUtilisateur(authorization, em);
             if (u.isPresent()) {
                 Utilisateur userToGet = em.find(Utilisateur.class, username);
                 if (userToGet != null) {
@@ -223,23 +245,5 @@ public class UtilisateursAPI {
     private boolean hasPermissionToManage(Utilisateur manager, Utilisateur managed) {
         // For now it's really simple, there is no special permission
         return manager.getUsername().equals(managed.getUsername());
-    }
-
-    private Optional<Utilisateur> authentifierUtilisateur(String authorization) throws InvalidAuthorizationException, NotFoundException {
-        String ID = PasswordUtils.decodeAuthorization(authorization);
-        String[] splittedID = ID.split(":");
-        String username = splittedID[0];
-        String password = splittedID[1];
-
-        Utilisateur u = em.find(Utilisateur.class, username);
-        if (u != null) {
-            if (PasswordUtils.verifyPassword(password, u.getHash(), u.getSalt())) {
-                return Optional.of(u);
-            } else {
-                return Optional.empty();
-            }
-        } else {
-            throw new NotFoundException();
-        }
     }
 }
