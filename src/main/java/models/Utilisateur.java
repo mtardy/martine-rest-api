@@ -94,6 +94,7 @@ public class Utilisateur {
         this.dateInscription = dateInscription;
 
         this.commentaires = new ArrayList<>();
+        this.recettes = new ArrayList<>();
     }
 
     public void remove(EntityManager em) {

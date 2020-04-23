@@ -11,6 +11,7 @@ public class UtilisateurCompact {
     private String username;
     private String fullname;
     private LocalDateTime dateCreation;
+    private LocalDateTime dateModification;
     private String biographie;
     private String email;
     private String photo;
@@ -21,6 +22,7 @@ public class UtilisateurCompact {
         this.username = u.getUsername();
         this.fullname = u.getFullname();
         this.dateCreation = u.getDateInscription();
+        this.dateModification = u.getDateModification();
         this.biographie = u.getBiographie();
         this.email = u.getEmail();
         this.photo = u.getPhoto();
@@ -93,5 +95,13 @@ public class UtilisateurCompact {
 
     public void setDateCreation(LocalDateTime dateCreation) {
         this.dateCreation = dateCreation;
+    }
+
+    public LocalDateTime getDateModification() {
+        return dateModification;
+    }
+
+    public void setDateModification(LocalDateTime dateModification) {
+        this.dateModification = dateModification;
     }
 }

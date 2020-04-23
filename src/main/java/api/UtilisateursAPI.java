@@ -84,10 +84,10 @@ public class UtilisateursAPI {
                     .status(Response.Status.BAD_REQUEST)
                     .entity(new UsernameIndisponibleErreur("Cet username est déjà utilisé"))
                     .build();
+        } else {
+            em.persist(newUser);
+            return Response.status(Response.Status.CREATED).entity(new UtilisateurCompact(newUser)).build();
         }
-
-        em.persist(newUser);
-        return Response.status(Response.Status.CREATED).build();
     }
 
     @PATCH

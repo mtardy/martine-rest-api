@@ -20,7 +20,6 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.Response;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -73,7 +72,7 @@ public class RecetteAPI {
         if (username != null) {
             predicates.add(cb.like(
                     cb.lower(r.get("auteurUsername")),
-                    username.toLowerCase()
+                    username.toLowerCase().replace('*', '%')
             ));
         }
 
