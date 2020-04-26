@@ -11,6 +11,7 @@ import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.URL;
 import utils.PasswordUtils;
 
+import javax.ejb.Local;
 import javax.ejb.Singleton;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -18,8 +19,10 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.format.DateTimeParseException;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -57,6 +60,7 @@ public class UtilisateursAPI {
             @ApiParam(value = "L'adresse email") @FormParam("email") String email,
             @Length(max = 255)
             @ApiParam(value = "La biographie") @FormParam("biographie") String biographie,
+            @ApiParam(value = "La date de naissance au format ISO8601: YYYY-MM-DD") @FormParam("dateNaissance") String dateNaissance,
             @URL @Length(max = 255)
             @ApiParam(value = "Le lien vers une photo") @FormParam("photo") String photo
     ) {
@@ -70,23 +74,41 @@ public class UtilisateursAPI {
                     .build();
         }
 
-        // Process the user password for storage
-        String salt = PasswordUtils.generateSalt(this.SALT_BYTE_LENGTH).get();
-        String hash = PasswordUtils.hashPassword(password, salt).get();
+        try {
+            // Process the user password for storage
+            String salt = PasswordUtils.generateSalt(this.SALT_BYTE_LENGTH).get();
+            String hash = PasswordUtils.hashPassword(password, salt).get();
 
-        LocalDateTime dateInscription = LocalDateTime.now(ZoneId.of("Europe/Paris"));
-        Utilisateur newUser = new Utilisateur(username, hash, salt, fullname, biographie, email, photo, dateInscription);
-        newUser.setDateModification(dateInscription);
+            LocalDateTime dateInscription = LocalDateTime.now(ZoneId.of("Europe/Paris"));
 
-        Utilisateur u = em.find(Utilisateur.class, newUser.getUsername());
-        if (u != null) {
+            Utilisateur newUser = new Utilisateur(username, hash, salt);
+            newUser.setFullname(fullname);
+            newUser.setBiographie(biographie);
+            newUser.setEmail(email);
+            newUser.setPhoto(photo);
+            newUser.setDateInscription(dateInscription);
+            newUser.setDateModification(dateInscription);
+            // Parse the birth date
+            if (dateNaissance != null) {
+                LocalDate parsedDateNaissance = LocalDate.parse(dateNaissance);
+                newUser.setDateNaissance(parsedDateNaissance);
+            }
+
+            Utilisateur u = em.find(Utilisateur.class, newUser.getUsername());
+            if (u != null) {
+                return Response
+                        .status(Response.Status.BAD_REQUEST)
+                        .entity(new UsernameIndisponibleErreur("Cet username est déjà utilisé"))
+                        .build();
+            } else {
+                em.persist(newUser);
+                return Response.status(Response.Status.CREATED).entity(newUser).build();
+            }
+        } catch (DateTimeParseException e) {
             return Response
                     .status(Response.Status.BAD_REQUEST)
-                    .entity(new UsernameIndisponibleErreur("Cet username est déjà utilisé"))
+                    .entity(new UtilisateurMalformeErreur("La date de naissance n'est pas valide, suivre le format YYYY-MM-DD"))
                     .build();
-        } else {
-            em.persist(newUser);
-            return Response.status(Response.Status.CREATED).entity(new UtilisateurCompact(newUser)).build();
         }
     }
 
@@ -100,7 +122,7 @@ public class UtilisateursAPI {
             authorizations = {@Authorization(value = "basicAuth")}
     )
     @ApiResponses({
-            @ApiResponse(code = 204, message = "Succès de la modification de l'utilisateur"),
+            @ApiResponse(code = 200, message = "Succès de la modification de l'utilisateur"),
             @ApiResponse(code = 400, message = "Le format de l'authentification dans le header est invalide"),
             @ApiResponse(code = 401, message = "L'authentification a échoué, mot de passe invalide"),
             @ApiResponse(code = 404, message = "Utilisateur introuvable")
@@ -109,6 +131,7 @@ public class UtilisateursAPI {
             @Length(max = 255) @ApiParam(value = "Le nouveau mot de passe en clair") @FormParam("password") String password,
             @Length(max = 255) @ApiParam(value = "Le nouveau nom complet") @FormParam("fullname") String fullname,
             @Length(max = 512) @ApiParam(value = "La nouvelle biographie") @FormParam("biographie") String biographie,
+            @ApiParam(value = "La nouvelle date de naissance au format ISO8601: YYYY-MM-DD") @FormParam("dateNaissance") String dateNaissance,
             @Length(max = 255) @URL @ApiParam(value = "Le lien vers la nouvelle photo") @FormParam("photo") String photo,
             @Length(max = 255) @Email @ApiParam(value = "Le nouvel email") @FormParam("email") String email,
             @ApiParam(value = "Le format est \"Basic <username:password in base64>\"") @HeaderParam("authorization") String authorization,
@@ -141,11 +164,27 @@ public class UtilisateursAPI {
                             userToModify.setEmail(email);
                             modification = true;
                         }
+                        if (dateNaissance != null) {
+                            try {
+                                LocalDate parsedDateNaissance = LocalDate.parse(dateNaissance);
+                                userToModify.setDateNaissance(parsedDateNaissance);
+                                modification = true;
+                            } catch (DateTimeParseException e) {
+                                return Response
+                                        .status(Response.Status.BAD_REQUEST)
+                                        .entity(new UtilisateurMalformeErreur("La date de naissance n'est pas valide, suivre le format YYYY-MM-DD"))
+                                        .build();
+                            } finally {
+                                if (modification) {
+                                    userToModify.setDateModification(LocalDateTime.now(ZoneId.of("Europe/Paris")));
+                                }
+                            }
+                        }
 
                         if (modification) {
                             userToModify.setDateModification(LocalDateTime.now(ZoneId.of("Europe/Paris")));
                         }
-                        return Response.status(Response.Status.NO_CONTENT).build();
+                        return Response.ok(userToModify).build();
                     } else {
                         return Response.status(Response.Status.NOT_FOUND).build();
                     }
@@ -224,8 +263,7 @@ public class UtilisateursAPI {
                 Utilisateur userToGet = em.find(Utilisateur.class, username);
                 if (userToGet != null) {
                     if (hasPermissionToManage(u.get(), userToGet)) {
-                        UtilisateurCompact userToSend = new UtilisateurCompact(userToGet);
-                        return Response.ok(userToSend).build();
+                        return Response.ok(userToGet).build();
                     } else {
                         return Response.status(Response.Status.UNAUTHORIZED).build();
                     }

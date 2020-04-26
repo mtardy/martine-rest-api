@@ -16,6 +16,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -45,6 +46,9 @@ public class Utilisateur {
     @ApiModelProperty(value = "La biographie de l'utilisateur")
     @Length(max = 255)
     private String biographie;
+
+    @ApiModelProperty(value = "La date de naissance")
+    private LocalDate dateNaissance;
 
     @ApiModelProperty(value = "L'adresse email de l'utilisateur'")
     @Length(max = 255)
@@ -78,21 +82,10 @@ public class Utilisateur {
 
     public Utilisateur(String username,
                        String hash,
-                       String salt,
-                       String fullname,
-                       String biographie,
-                       String email,
-                       String photo,
-                       LocalDateTime dateInscription) {
+                       String salt) {
         this.username = username;
         this.hash = hash;
         this.salt = salt;
-        this.fullname = fullname;
-        this.biographie = biographie;
-        this.email = email;
-        this.photo = photo;
-        this.dateInscription = dateInscription;
-
         this.commentaires = new ArrayList<>();
         this.recettes = new ArrayList<>();
     }
@@ -227,5 +220,13 @@ public class Utilisateur {
 
     public void setDateModification(LocalDateTime dateModification) {
         this.dateModification = dateModification;
+    }
+
+    public LocalDate getDateNaissance() {
+        return dateNaissance;
+    }
+
+    public void setDateNaissance(LocalDate dateNaissance) {
+        this.dateNaissance = dateNaissance;
     }
 }
