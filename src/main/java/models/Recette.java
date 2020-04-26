@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiModelProperty;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 import org.hibernate.validator.constraints.Length;
+import org.hibernate.validator.constraints.URL;
 
 import javax.persistence.*;
 import javax.validation.Valid;
@@ -36,6 +37,10 @@ public class Recette {
 
     @ApiModelProperty(value = "La description de la recette", example = "Ceci est la recette de mon grand-père...")
     private String description;
+
+    @ApiModelProperty(value = "Lien vers une photo de la recette", example = "http://photo.com/photo1.jpg")
+    @URL
+    private String photo;
 
     @ApiModelProperty(value = "Les étapes de préparation de la recette", example = "Casser les oeufs...")
     @Column(length = 512)
@@ -151,5 +156,13 @@ public class Recette {
 
     public void setPreparation(String preparation) {
         this.preparation = preparation;
+    }
+
+    public String getPhoto() {
+        return photo;
+    }
+
+    public void setPhoto(String photo) {
+        this.photo = photo;
     }
 }
