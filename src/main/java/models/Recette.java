@@ -27,11 +27,14 @@ public class Recette {
     @ApiModelProperty(value = "Le username de l'auteur de la recette", hidden = true)
     private String auteurUsername;
 
-    @ApiModelProperty(value = "La description de la recette", example = "Ceci est la recette de mon grand-père...")
-    private String description;
-
     @ApiModelProperty(value = "La date de création de la recette", hidden = true)
     private LocalDateTime dateCreation;
+
+    @ApiModelProperty(value = "La date de dernière modification de la recette", hidden = true)
+    private LocalDateTime dateModification;
+
+    @ApiModelProperty(value = "La description de la recette", example = "Ceci est la recette de mon grand-père...")
+    private String description;
 
     // ManyToMany au lieu de OneToMany car un même élément peut appartenir à plusieurs recettes.
     @ManyToMany(fetch = FetchType.EAGER)
@@ -126,5 +129,13 @@ public class Recette {
 
     public void setAuteurUsername(String auteurUsername) {
         this.auteurUsername = auteurUsername;
+    }
+
+    public LocalDateTime getDateModification() {
+        return dateModification;
+    }
+
+    public void setDateModification(LocalDateTime dateModification) {
+        this.dateModification = dateModification;
     }
 }

@@ -196,6 +196,7 @@ public class RecetteAPI {
 
         LocalDateTime date = LocalDateTime.now(ZoneId.of("Europe/Paris"));
         recette.setDateCreation(date);
+        recette.setDateModification(date);
 
         try {
             Optional<Utilisateur> u = PasswordUtils.authentifierUtilisateur(authorization, em);
