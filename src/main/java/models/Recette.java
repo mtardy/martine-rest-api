@@ -3,6 +3,7 @@ package models;
 import io.swagger.annotations.ApiModelProperty;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
+import org.hibernate.validator.constraints.Length;
 
 import javax.persistence.*;
 import javax.validation.Valid;
@@ -35,6 +36,11 @@ public class Recette {
 
     @ApiModelProperty(value = "La description de la recette", example = "Ceci est la recette de mon grand-père...")
     private String description;
+
+    @ApiModelProperty(value = "Les étapes de préparation de la recette", example = "Casser les oeufs...")
+    @Column(length = 512)
+    @Length(max = 512)
+    private String preparation;
 
     // ManyToMany au lieu de OneToMany car un même élément peut appartenir à plusieurs recettes.
     @ManyToMany(fetch = FetchType.EAGER)
@@ -137,5 +143,13 @@ public class Recette {
 
     public void setDateModification(LocalDateTime dateModification) {
         this.dateModification = dateModification;
+    }
+
+    public String getPreparation() {
+        return preparation;
+    }
+
+    public void setPreparation(String preparation) {
+        this.preparation = preparation;
     }
 }
