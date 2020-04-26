@@ -15,6 +15,7 @@ import javax.ejb.Local;
 import javax.ejb.Singleton;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.ws.rs.*;
@@ -23,12 +24,14 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Singleton
-@Path("/user")
+@Path("/users")
 @Api(value = "Utilisateurs")
 public class UtilisateursAPI {
 
@@ -278,6 +281,23 @@ public class UtilisateursAPI {
         } catch (InvalidAuthorizationException e) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
+    }
+
+    @GET
+    @Path("/")
+    @Produces({"application/json"})
+    @ApiOperation(value = "Récupérer la liste des utilisateurs")
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Succès de la récupération de la liste des utilisateurs"),
+    })
+    public Response lister() {
+        TypedQuery<Utilisateur> req = em.createQuery("select u from Utilisateur u", Utilisateur.class);
+        List<Utilisateur> utilisateurs = req.getResultList();
+        List<UtilisateurCompact> utilisateurCompacts = new ArrayList<>();
+        utilisateurs.forEach(u -> {
+            utilisateurCompacts.add(new UtilisateurCompact(u));
+        });
+        return Response.ok(utilisateurCompacts).build();
     }
 
     private boolean hasPermissionToManage(Utilisateur manager, Utilisateur managed) {
