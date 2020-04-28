@@ -1,3 +1,4 @@
+import api.AvisAPI;
 import api.Ping;
 import api.RecetteAPI;
 import api.UtilisateursAPI;
@@ -19,7 +20,7 @@ public class App extends Application {
 
     public App(){
         BeanConfig beanConfig = new BeanConfig();
-        beanConfig.setVersion("1.1.0");
+        beanConfig.setVersion("1.2.0");
         beanConfig.setBasePath("/api/v1");
         beanConfig.setTitle("Les recettes de Martine API");
         beanConfig.setDescription("Bienvenue sur l'API REST des recettes de Martine!");
@@ -47,6 +48,7 @@ public class App extends Application {
 
         resources.add(Ping.class);
         resources.add(RecetteAPI.class);
+        resources.add(AvisAPI.class);
         resources.add(UtilisateursAPI.class);
 
         resources.add(JacksonConfig.class);

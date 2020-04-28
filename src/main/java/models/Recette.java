@@ -59,12 +59,33 @@ public class Recette {
     @Valid
     private Collection<Commentaire> commentaires;
 
+    @ApiModelProperty(hidden = true)
+    @OneToMany
+    @LazyCollection(LazyCollectionOption.FALSE)
+    @Valid
+    private Collection<Note> notes;
+
+    @ApiModelProperty(hidden = true)
+    public Integer getNote() {
+        int note = 0;
+        for (Note n : notes) {
+            note += n.getValeur();
+        }
+        if (notes.size() == 0) {
+            return null;
+        } else {
+            return note/notes.size();
+        }
+    }
+
     public Recette() {
-        this.commentaires = new ArrayList<Commentaire>();
+        this.commentaires = new ArrayList<>();
+        this.notes = new ArrayList<>();
     }
 
     public void remove(EntityManager em) {
         removeCommentaires(em);
+        removeNotes(em);
         em.remove(this);
     }
 
@@ -78,8 +99,26 @@ public class Recette {
         }
     }
 
+    private void removeNotes(EntityManager em) {
+        for (Iterator<Note> iterator = notes.iterator(); iterator.hasNext();) {
+            Note note = iterator.next();
+            Utilisateur u = em.find(Utilisateur.class, note.getAuteurUsername());
+            u.removeNote(note);
+            iterator.remove();
+            em.remove(note);
+        }
+    }
+
     public String getNom() {
         return nom;
+    }
+
+    public void addNote(Note note) {
+        notes.add(note);
+    }
+
+    public void removeNote(Note note) {
+        notes.remove(note);
     }
 
     public void addCommentaire(Commentaire commentaire) {
@@ -164,5 +203,13 @@ public class Recette {
 
     public void setPhoto(String photo) {
         this.photo = photo;
+    }
+
+    public Collection<Note> getNotes() {
+        return notes;
+    }
+
+    public void setNotes(Collection<Note> notes) {
+        this.notes = notes;
     }
 }

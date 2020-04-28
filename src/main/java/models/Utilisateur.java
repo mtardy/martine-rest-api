@@ -68,17 +68,23 @@ public class Utilisateur {
     @URL
     private String photo;
 
+    @ApiModelProperty(value = "La liste des recettes de l'utilisateur")
+    @OneToMany
+    @LazyCollection(LazyCollectionOption.FALSE)
+    @Valid
+    private Collection<Recette> recettes;
+
     @ApiModelProperty(value = "La liste des commentaires de l'utilisateur")
     @OneToMany
     @LazyCollection(LazyCollectionOption.FALSE)
     @Valid
     private Collection<Commentaire> commentaires;
 
-    @ApiModelProperty(value = "La liste des recettes de l'utilisateur")
+    @ApiModelProperty(value = "La liste des commentaires de l'utilisateur")
     @OneToMany
     @LazyCollection(LazyCollectionOption.FALSE)
     @Valid
-    private Collection<Recette> recettes;
+    private Collection<Note> notes;
 
     public Utilisateur(String username,
                        String hash,
@@ -88,10 +94,13 @@ public class Utilisateur {
         this.salt = salt;
         this.commentaires = new ArrayList<>();
         this.recettes = new ArrayList<>();
+        this.notes = new ArrayList<>();
     }
 
     public void remove(EntityManager em) {
         removeCommentaires(em);
+        removeNotes(em);
+        // Recettes must be removed last
         removeRecettes(em);
         em.remove(this);
     }
@@ -103,6 +112,16 @@ public class Utilisateur {
             r.removeCommentaire(commentaire);
             iterator.remove();
             em.remove(commentaire);
+        }
+    }
+
+    private void removeNotes(EntityManager em) {
+        for (Iterator<Note> iterator = notes.iterator(); iterator.hasNext();) {
+            Note note = iterator.next();
+            Recette r = em.find(Recette.class, note.getRecetteId());
+            r.removeNote(note);
+            iterator.remove();
+            em.remove(note);
         }
     }
 
@@ -129,6 +148,14 @@ public class Utilisateur {
 
     public void removeCommentaire(Commentaire commentaire) {
         this.commentaires.remove(commentaire);
+    }
+
+    public void addNote(Note note) {
+        this.notes.add(note);
+    }
+
+    public void removeNote(Note note) {
+        this.notes.remove(note);
     }
 
     public Utilisateur() {
@@ -228,5 +255,13 @@ public class Utilisateur {
 
     public void setDateNaissance(LocalDate dateNaissance) {
         this.dateNaissance = dateNaissance;
+    }
+
+    public Collection<Note> getNotes() {
+        return notes;
+    }
+
+    public void setNotes(Collection<Note> notes) {
+        this.notes = notes;
     }
 }

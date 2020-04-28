@@ -4,7 +4,6 @@ import Erreurs.InvalidAuthorizationException;
 import io.swagger.annotations.*;
 import models.*;
 import models.format.RecetteCompact;
-import org.hibernate.validator.constraints.Length;
 import utils.PasswordUtils;
 
 import javax.ejb.Singleton;
@@ -17,14 +16,12 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -249,119 +246,6 @@ public class RecetteAPI {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         } catch (InvalidAuthorizationException e) {
             return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-    }
-
-    @POST
-    @Path("/{id}/commentaires")
-    @Consumes({"application/x-www-form-urlencoded"})
-    @Produces({"application/json"})
-    @ApiOperation(value = "Ajouter un commentaire à une recette", authorizations = {
-            @Authorization(value = "basicAuth")
-    })
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Succès de l'ajout du commentaire"),
-            @ApiResponse(code = 400, message = "Requête invalide"),
-            @ApiResponse(code = 401, message = "L'authentification a échoué, mot de passe invalide"),
-            @ApiResponse(code = 404, message = "Recette introuvable")
-    })
-    public Response ajouterCommentaire(
-            @HeaderParam("authorization") String authorization,
-            @ApiParam(value = "Identifiant de la recette") @PathParam("id") int id,
-            @NotBlank @Length(min=1, max=512) @ApiParam(value = "Contenu du commentaire") @FormParam("texte") String texte
-    ) {
-        try {
-            Optional<Utilisateur> u = PasswordUtils.authentifierUtilisateur(authorization, em);
-            if (u.isPresent()) {
-                Utilisateur utilisateur = u.get();
-                Recette recette = em.find(Recette.class, id);
-                if (recette != null) {
-                    LocalDateTime date = LocalDateTime.now(ZoneId.of("Europe/Paris"));
-                    Commentaire commentaire = new Commentaire(id, utilisateur.getUsername(), date, texte);
-                    em.persist(commentaire);
-                    recette.addCommentaire(commentaire);
-                    utilisateur.addCommentaire(commentaire);
-                    return Response.ok(commentaire).build();
-                } else {
-                    return Response.status(Response.Status.NOT_FOUND).build();
-                }
-
-            } else {
-                return Response.status(Response.Status.UNAUTHORIZED).build();
-            }
-
-        } catch (NotFoundException e) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
-        } catch (InvalidAuthorizationException e) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-    }
-
-    @DELETE
-    @Path("/{id}/commentaires/{cid}")
-    @Produces({"application/json"})
-    @ApiOperation(value = "Supprimer un commentaire d'une recette", authorizations = {
-            @Authorization(value = "basicAuth")
-    })
-    @ApiResponses({
-            @ApiResponse(code = 204, message = "Succès de la suppression du commentaire"),
-            @ApiResponse(code = 400, message = "Requête invalide"),
-            @ApiResponse(code = 401, message = "L'authentification a échoué, mot de passe invalide"),
-            @ApiResponse(code = 404, message = "Recette ou commentaire introuvable")
-    })
-    public Response supprimerCommentaire(
-            @HeaderParam("authorization") String authorization,
-            @ApiParam(value = "Identifiant de la recette") @PathParam("id") int id,
-            @ApiParam(value = "Identifiant du commentaire") @PathParam("cid") int cid
-    ) {
-        try {
-            Optional<Utilisateur> u = PasswordUtils.authentifierUtilisateur(authorization, em);
-            if (u.isPresent()) {
-                Utilisateur utilisateur = u.get();
-                Recette recette = em.find(Recette.class, id);
-                if (recette != null) {
-                    Commentaire commentaire = em.find(Commentaire.class, cid);
-                    if (commentaire != null && commentaire.getRecetteId() == id) {
-                        if (commentaire.getAuteurUsername().equals(utilisateur.getUsername())) {
-                            commentaire.removeReferences(recette, utilisateur);
-                            em.remove(commentaire);
-                            return Response.status(Response.Status.NO_CONTENT).build();
-                        } else {
-                            return Response.status(Response.Status.UNAUTHORIZED).build();
-                        }
-                    } else {
-                        return Response.status(Response.Status.NOT_FOUND).build();
-                    }
-                } else {
-                    return Response.status(Response.Status.NOT_FOUND).build();
-                }
-
-            } else {
-                return Response.status(Response.Status.UNAUTHORIZED).build();
-            }
-
-        } catch (NotFoundException e) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
-        } catch (InvalidAuthorizationException e) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-    }
-
-    @GET
-    @Path("/{id}/commentaires")
-    @Produces({"application/json"})
-    @ApiOperation(value = "Obtenir les commentaires d'une recette")
-    @ApiResponses({
-            @ApiResponse(code = 200, message = "Succès de la requête"),
-            @ApiResponse(code = 404, message = "Recette introuvable")
-    })
-    public Response obtenirCommentaires(@ApiParam(value = "Identifiant de la recette") @PathParam("id") int id) {
-        Recette r = em.find(Recette.class, id);
-        if (r != null) {
-            Collection<Commentaire> commentaires = r.getCommentaires();
-            return Response.ok(commentaires).build();
-        } else {
-            return Response.status(Response.Status.NOT_FOUND).build();
         }
     }
 }

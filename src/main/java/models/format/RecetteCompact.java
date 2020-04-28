@@ -1,80 +1,45 @@
 package models.format;
 
 import models.Recette;
+
 import java.time.LocalDateTime;
 
 public class RecetteCompact {
-    private int id;
-    private String nom;
-    private String auteurUsername;
-    private LocalDateTime dateCreation;
-    private LocalDateTime dateModification;
-    private String description;
-    private String photo;
+    private Recette r;
 
     public RecetteCompact(Recette r) {
-        this.id = r.getId();
-        this.nom = r.getNom();
-        this.auteurUsername = r.getAuteurUsername();
-        this.dateCreation = r.getDateCreation();
-        this.dateModification = r.getDateModification();
-        this.description = r.getDescription();
-        this.photo = r.getPhoto();
+        this.r = r;
     }
 
     public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
+        return r.getId();
     }
 
     public String getNom() {
-        return nom;
-    }
-
-    public void setNom(String nom) {
-        this.nom = nom;
+        return r.getNom();
     }
 
     public String getAuteurUsername() {
-        return auteurUsername;
-    }
-
-    public void setAuteurUsername(String auteurUsername) {
-        this.auteurUsername = auteurUsername;
+        return r.getAuteurUsername();
     }
 
     public LocalDateTime getDateCreation() {
-        return dateCreation;
-    }
-
-    public void setDateCreation(LocalDateTime dateCreation) {
-        this.dateCreation = dateCreation;
+        return r.getDateCreation();
     }
 
     public LocalDateTime getDateModification() {
-        return dateModification;
-    }
-
-    public void setDateModification(LocalDateTime dateModification) {
-        this.dateModification = dateModification;
+        return r.getDateModification();
     }
 
     public String getDescription() {
-        return description;
+        return r.getDescription();
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public Integer getNote() {
+        return r.getNote();
     }
 
     public String getPhoto() {
-        return photo;
-    }
-
-    public void setPhoto(String photo) {
-        this.photo = photo;
+        return r.getPhoto();
     }
 }
