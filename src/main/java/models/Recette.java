@@ -66,7 +66,7 @@ public class Recette {
     private Collection<Note> notes;
 
     @ApiModelProperty(hidden = true)
-    public Integer getNote() {
+    public Float getNote() {
         int note = 0;
         for (Note n : notes) {
             note += n.getValeur();
@@ -74,7 +74,7 @@ public class Recette {
         if (notes.size() == 0) {
             return null;
         } else {
-            return note/notes.size();
+            return (float) note/notes.size();
         }
     }
 

@@ -35,7 +35,7 @@ public class RecetteCompact {
         return r.getDescription();
     }
 
-    public Integer getNote() {
+    public Float getNote() {
         return r.getNote();
     }
 
