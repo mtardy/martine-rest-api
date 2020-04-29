@@ -8,10 +8,7 @@ import org.hibernate.annotations.LazyCollectionOption;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.URL;
 
-import javax.persistence.Entity;
-import javax.persistence.EntityManager;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import javax.persistence.*;
 import javax.validation.Valid;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
@@ -69,19 +66,20 @@ public class Utilisateur {
     private String photo;
 
     @ApiModelProperty(value = "La liste des recettes de l'utilisateur")
-    @OneToMany
+    @OneToMany(mappedBy = "auteur")
     @LazyCollection(LazyCollectionOption.FALSE)
     @Valid
     private Collection<Recette> recettes;
 
     @ApiModelProperty(value = "La liste des commentaires de l'utilisateur")
-    @OneToMany
+    // Here we cannot declare mappedBy = "auteur" because there is a double bidirectional relation
+    @OneToMany(mappedBy = "auteur")
     @LazyCollection(LazyCollectionOption.FALSE)
     @Valid
     private Collection<Commentaire> commentaires;
 
     @ApiModelProperty(value = "La liste des commentaires de l'utilisateur")
-    @OneToMany
+    @OneToMany(mappedBy = "auteur")
     @LazyCollection(LazyCollectionOption.FALSE)
     @Valid
     private Collection<Note> notes;

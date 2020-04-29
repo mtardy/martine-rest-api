@@ -12,4 +12,8 @@ public class UtilisateurCompact {
     public String getUsername() {
         return u.getUsername();
     }
+
+    public String getFullname() {
+        return u.getFullname();
+    }
 }

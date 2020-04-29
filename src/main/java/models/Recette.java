@@ -1,5 +1,7 @@
 package models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.annotations.ApiModelProperty;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
@@ -26,8 +28,10 @@ public class Recette {
     @NotBlank(message = "Le nom d'une recette ne peut pas être null, vide ou composé uniquement de caractères blancs")
     private String nom;
 
-    @ApiModelProperty(value = "Le username de l'auteur de la recette", hidden = true)
-    private String auteurUsername;
+    @ApiModelProperty(value = "L'auteur de la recette", hidden = true)
+    @JsonIgnore
+    @ManyToOne
+    private Utilisateur auteur;
 
     @ApiModelProperty(value = "La date de création de la recette", hidden = true)
     private LocalDateTime dateCreation;
@@ -54,13 +58,13 @@ public class Recette {
     private Collection<Element> elements;
 
     @ApiModelProperty(hidden = true)
-    @OneToMany
+    @OneToMany(mappedBy = "auteur")
     @LazyCollection(LazyCollectionOption.FALSE)
     @Valid
     private Collection<Commentaire> commentaires;
 
     @ApiModelProperty(hidden = true)
-    @OneToMany
+    @OneToMany(mappedBy = "auteur")
     @LazyCollection(LazyCollectionOption.FALSE)
     @Valid
     private Collection<Note> notes;
@@ -81,6 +85,16 @@ public class Recette {
     public Recette() {
         this.commentaires = new ArrayList<>();
         this.notes = new ArrayList<>();
+    }
+
+    @ApiModelProperty(value = "Le username de l'auteur de la recette", hidden = true)
+    public String getAuteurUsername() {
+        return auteur.getUsername();
+    }
+
+    @ApiModelProperty(value = "Le fullname de l'auteur de la recette", hidden = true)
+    public String getAuteurFullname() {
+        return auteur.getFullname();
     }
 
     public void remove(EntityManager em) {
@@ -173,14 +187,6 @@ public class Recette {
         this.dateCreation = dateCreation;
     }
 
-    public String getAuteurUsername() {
-        return auteurUsername;
-    }
-
-    public void setAuteurUsername(String auteurUsername) {
-        this.auteurUsername = auteurUsername;
-    }
-
     public LocalDateTime getDateModification() {
         return dateModification;
     }
@@ -211,5 +217,13 @@ public class Recette {
 
     public void setNotes(Collection<Note> notes) {
         this.notes = notes;
+    }
+
+    public Utilisateur getAuteur() {
+        return auteur;
+    }
+
+    public void setAuteur(Utilisateur auteur) {
+        this.auteur = auteur;
     }
 }

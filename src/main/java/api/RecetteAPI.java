@@ -198,8 +198,8 @@ public class RecetteAPI {
         try {
             Optional<Utilisateur> u = PasswordUtils.authentifierUtilisateur(authorization, em);
             if (u.isPresent()) {
-                recette.setAuteurUsername(u.get().getUsername());
-                u.get().addRecette(recette);
+                Utilisateur utilisateur = u.get();
+                recette.setAuteur(utilisateur);
                 em.persist(recette);
                 return Response.status(Response.Status.CREATED).entity(recette).build();
             } else {

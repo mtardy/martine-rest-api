@@ -1,11 +1,9 @@
 package models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.annotations.ApiModelProperty;
 
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.MappedSuperclass;
+import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
@@ -19,8 +17,20 @@ public abstract class Avis {
     @NotNull
     private int recetteId;
 
+    @JsonIgnore
     @NotNull
-    private String auteurUsername;
+    @ManyToOne
+    private Utilisateur auteur;
+
+    @ApiModelProperty(value = "Le username de l'auteur de l'avis", hidden = true)
+    public String getAuteurUsername() {
+        return auteur.getUsername();
+    }
+
+    @ApiModelProperty(value = "Le fullname de l'auteur de l'avis", hidden = true)
+    public String getAuteurFullname() {
+        return auteur.getFullname();
+    }
 
     @NotNull
     private LocalDateTime date;
@@ -28,11 +38,12 @@ public abstract class Avis {
     public Avis() {
     }
 
-    public Avis(int recetteId, String auteurUsername, LocalDateTime date) {
-        this.auteurUsername = auteurUsername;
+    public Avis(int recetteId, LocalDateTime date) {
         this.date = date;
         this.recetteId = recetteId;
     }
+
+
 
     abstract void removeReferences(Recette r, Utilisateur u );
 
@@ -52,19 +63,19 @@ public abstract class Avis {
         this.recetteId = recetteId;
     }
 
-    public String getAuteurUsername() {
-        return auteurUsername;
-    }
-
-    public void setAuteurUsername(String auteurUsername) {
-        this.auteurUsername = auteurUsername;
-    }
-
     public LocalDateTime getDate() {
         return date;
     }
 
     public void setDate(LocalDateTime date) {
         this.date = date;
+    }
+
+    public Utilisateur getAuteur() {
+        return auteur;
+    }
+
+    public void setAuteur(Utilisateur auteur) {
+        this.auteur = auteur;
     }
 }
