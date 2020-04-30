@@ -24,6 +24,10 @@ import java.util.Iterator;
 @JsonIgnoreProperties({ "hash", "salt" })
 public class Utilisateur {
     @Id
+    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    @ApiModelProperty(hidden = true)
+    private int id;
+
     @ApiModelProperty(value = "Le pseudo de l'utilisateur")
     @NotBlank(message = "Le username ne peut être null, vide ou contenir uniquement des caractères blancs")
     private String username;
@@ -72,7 +76,6 @@ public class Utilisateur {
     private Collection<Recette> recettes;
 
     @ApiModelProperty(value = "La liste des commentaires de l'utilisateur")
-    // Here we cannot declare mappedBy = "auteur" because there is a double bidirectional relation
     @OneToMany(mappedBy = "auteur")
     @LazyCollection(LazyCollectionOption.FALSE)
     @Valid

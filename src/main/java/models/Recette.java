@@ -7,11 +7,13 @@ import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.URL;
+import utils.QueryUtils;
 
 import javax.persistence.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.QueryParam;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -58,13 +60,13 @@ public class Recette {
     private Collection<Element> elements;
 
     @ApiModelProperty(hidden = true)
-    @OneToMany(mappedBy = "auteur")
+    @OneToMany
     @LazyCollection(LazyCollectionOption.FALSE)
     @Valid
     private Collection<Commentaire> commentaires;
 
     @ApiModelProperty(hidden = true)
-    @OneToMany(mappedBy = "auteur")
+    @OneToMany
     @LazyCollection(LazyCollectionOption.FALSE)
     @Valid
     private Collection<Note> notes;
@@ -106,7 +108,7 @@ public class Recette {
     private void removeCommentaires(EntityManager em) {
         for (Iterator<Commentaire> iterator = commentaires.iterator(); iterator.hasNext();) {
             Commentaire commentaire = iterator.next();
-            Utilisateur u = em.find(Utilisateur.class, commentaire.getAuteurUsername());
+            Utilisateur u = QueryUtils.trouverUtilisateur(commentaire.getAuteurUsername(), em).get();
             u.removeCommentaire(commentaire);
             iterator.remove();
             em.remove(commentaire);
@@ -116,7 +118,7 @@ public class Recette {
     private void removeNotes(EntityManager em) {
         for (Iterator<Note> iterator = notes.iterator(); iterator.hasNext();) {
             Note note = iterator.next();
-            Utilisateur u = em.find(Utilisateur.class, note.getAuteurUsername());
+            Utilisateur u = QueryUtils.trouverUtilisateur(note.getAuteurUsername(), em).get();
             u.removeNote(note);
             iterator.remove();
             em.remove(note);

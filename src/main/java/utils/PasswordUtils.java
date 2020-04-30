@@ -84,8 +84,9 @@ public class PasswordUtils {
         String username = splittedID[0];
         String password = splittedID[1];
 
-        Utilisateur u = em.find(Utilisateur.class, username);
-        if (u != null) {
+        Optional<Utilisateur> optionalUtilisateur = QueryUtils.trouverUtilisateur(username, em);
+        if (optionalUtilisateur.isPresent()) {
+            Utilisateur u = optionalUtilisateur.get();
             if (PasswordUtils.verifyPassword(password, u.getHash(), u.getSalt())) {
                 return Optional.of(u);
             } else {

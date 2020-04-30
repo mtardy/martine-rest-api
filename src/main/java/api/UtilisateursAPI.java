@@ -10,6 +10,7 @@ import models.format.UtilisateurCompact;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.URL;
 import utils.PasswordUtils;
+import utils.QueryUtils;
 
 import javax.ejb.Singleton;
 import javax.persistence.EntityManager;
@@ -96,8 +97,8 @@ public class UtilisateursAPI {
                 newUser.setDateNaissance(parsedDateNaissance);
             }
 
-            Utilisateur u = em.find(Utilisateur.class, newUser.getUsername());
-            if (u != null) {
+            Optional<Utilisateur> optionalUtilisateur = QueryUtils.trouverUtilisateur(newUser.getUsername(), em);
+            if (optionalUtilisateur.isPresent()) {
                 return Response
                         .status(Response.Status.BAD_REQUEST)
                         .entity(new UsernameIndisponibleErreur("Cet username est déjà utilisé"))
@@ -141,9 +142,10 @@ public class UtilisateursAPI {
         try {
             Optional<Utilisateur> u = PasswordUtils.authentifierUtilisateur(authorization, em);
             if (u.isPresent()) {
-                Utilisateur userToModify = em.find(Utilisateur.class, username);
-                if (hasPermissionToManage(u.get(), userToModify)) {
-                    if (userToModify != null) {
+                Optional<Utilisateur> optionalUtilisateur = QueryUtils.trouverUtilisateur(username, em);
+                if (optionalUtilisateur.isPresent()) {
+                    Utilisateur userToModify = optionalUtilisateur.get();
+                    if (hasPermissionToManage(u.get(), userToModify)) {
                         boolean modification = false;
                         if (password != null) {
                             String hash = PasswordUtils.hashPassword(password, userToModify.getSalt()).get();
@@ -188,10 +190,10 @@ public class UtilisateursAPI {
                         }
                         return Response.ok(userToModify).build();
                     } else {
-                        return Response.status(Response.Status.NOT_FOUND).build();
+                        return Response.status(Response.Status.UNAUTHORIZED).build();
                     }
                 } else {
-                    return Response.status(Response.Status.UNAUTHORIZED).build();
+                    return Response.status(Response.Status.NOT_FOUND).build();
                 }
             } else {
                 return Response.status(Response.Status.UNAUTHORIZED).build();
@@ -222,8 +224,10 @@ public class UtilisateursAPI {
         try {
             Optional<Utilisateur> u = PasswordUtils.authentifierUtilisateur(authorization, em);
             if (u.isPresent()) {
-                Utilisateur userToRemove = em.find(Utilisateur.class, username);
-                if (userToRemove != null) {
+                Optional<Utilisateur> optionalUtilisateur = QueryUtils.trouverUtilisateur(username, em);
+
+                if (optionalUtilisateur.isPresent()) {
+                    Utilisateur userToRemove = optionalUtilisateur.get();
                     if (hasPermissionToManage(u.get(), userToRemove)) {
                         userToRemove.remove(em);
                         return Response.status(Response.Status.NO_CONTENT).build();
@@ -262,8 +266,10 @@ public class UtilisateursAPI {
         try {
             Optional<Utilisateur> u = PasswordUtils.authentifierUtilisateur(authorization, em);
             if (u.isPresent()) {
-                Utilisateur userToGet = em.find(Utilisateur.class, username);
-                if (userToGet != null) {
+
+                Optional<Utilisateur> optionalUtilisateur = QueryUtils.trouverUtilisateur(username, em);
+                if (optionalUtilisateur.isPresent()) {
+                    Utilisateur userToGet = optionalUtilisateur.get();
                     if (hasPermissionToManage(u.get(), userToGet)) {
                         return Response.ok(userToGet).build();
                     } else {
