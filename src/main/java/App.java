@@ -20,7 +20,7 @@ public class App extends Application {
 
     public App(){
         BeanConfig beanConfig = new BeanConfig();
-        beanConfig.setVersion("1.2.0");
+        beanConfig.setVersion("1.2.1");
         beanConfig.setBasePath("/api/v1");
         beanConfig.setTitle("Les recettes de Martine API");
         beanConfig.setDescription("Bienvenue sur l'API REST des recettes de Martine!");
