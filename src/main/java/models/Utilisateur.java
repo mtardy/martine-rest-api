@@ -1,8 +1,10 @@
 package models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import models.format.RecetteCompact;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 import org.hibernate.validator.constraints.Length;
@@ -18,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 @Entity
 @ApiModel(description = "La quantité associée à un ingrédient")
@@ -70,10 +73,20 @@ public class Utilisateur {
     private String photo;
 
     @ApiModelProperty(value = "La liste des recettes de l'utilisateur")
+    @JsonIgnore
     @OneToMany(mappedBy = "auteur")
     @LazyCollection(LazyCollectionOption.FALSE)
     @Valid
     private Collection<Recette> recettes;
+
+    @ApiModelProperty(value = "La liste des recettes compactes de l'utilisateur")
+    public Collection<RecetteCompact> getRecettesCompactes() {
+        List<RecetteCompact> recettesCompactes = new ArrayList<>();
+        for (Recette recette : recettes) {
+            recettesCompactes.add(new RecetteCompact(recette));
+        }
+        return recettesCompactes;
+    }
 
     @ApiModelProperty(value = "La liste des commentaires de l'utilisateur")
     @OneToMany(mappedBy = "auteur")
