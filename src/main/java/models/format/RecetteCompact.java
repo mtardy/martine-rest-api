@@ -23,6 +23,10 @@ public class RecetteCompact {
         return r.getAuteurUsername();
     }
 
+    public String getAuteurFullname() {
+        return r.getAuteurFullname();
+    }
+
     public LocalDateTime getDateCreation() {
         return r.getDateCreation();
     }
