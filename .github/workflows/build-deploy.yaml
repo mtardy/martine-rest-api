@@ -25,10 +25,10 @@ jobs:
       - name: Publish to Github Packages Registry
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
-          name: mtardy/martine-rest-api
-          registry: docker.pkg.github.com
-          username: ${{ secrets.GITHUB_USERNAME }}
+          name: mtardy/martine-rest-api/martine
+          username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
           dockerfile: Dockerfile
           tags: latest
       - name: Deploy package to digitalocean
@@ -44,4 +44,4 @@ jobs:
           script: |
             docker stop $(docker ps -a -q)
             docker login docker.pkg.github.com -u $GITHUB_USERNAME -p $GITHUB_TOKEN
-            docker run -dit -p 8080:8080 docker.pkg.github.com/mtardy/martine-rest-api:latest
+            docker run -dit -p 8080:8080 docker.pkg.github.com/mtardy/martine-rest-api/martine:latest
