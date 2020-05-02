@@ -1,13 +1,10 @@
-# This workflow will build a Java project with Maven
-# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
-
-name: Build and deploy
+name: Build and Deploy
 
 on:
   push:
-    branches: [ docker ]
+    branches: [ master ]
   pull_request:
-    branches: [ docker ]
+    branches: [ master ]
 
 jobs:
   build:
@@ -48,5 +45,6 @@ jobs:
           envs: GITHUB_USERNAME, GITHUB_TOKEN
           script: |
             docker stop $(docker ps -a -q)
+            docker rm $(docker ps -a -q)
             docker login -u $GITHUB_USERNAME -p $GITHUB_TOKEN docker.pkg.github.com
             docker run -dit -p 8080:8080 --name martine-api-container docker.pkg.github.com/mtardy/martine-rest-api/martine-api:latest
