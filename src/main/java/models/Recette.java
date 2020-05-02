@@ -11,6 +11,7 @@ import utils.QueryUtils;
 
 import javax.persistence.*;
 import javax.validation.Valid;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.ws.rs.QueryParam;
@@ -52,6 +53,10 @@ public class Recette {
     @Column(length = 512)
     @Length(max = 512)
     private String preparation;
+
+    @ApiModelProperty(value = "Le nombre de part de la recette", example = "4")
+    @Min(0)
+    private int nombreParts;
 
     // ManyToMany au lieu de OneToMany car un même élément peut appartenir à plusieurs recettes.
     @ManyToMany(fetch = FetchType.EAGER)
@@ -227,5 +232,13 @@ public class Recette {
 
     public void setAuteur(Utilisateur auteur) {
         this.auteur = auteur;
+    }
+
+    public int getNombreParts() {
+        return nombreParts;
+    }
+
+    public void setNombreParts(int nombreParts) {
+        this.nombreParts = nombreParts;
     }
 }
