@@ -250,41 +250,19 @@ public class UtilisateursAPI {
     @GET
     @Path("/{username}")
     @Produces({"application/json"})
-    @ApiOperation(value = "Récupérer les informations sur un utilisateur",
-            notes = "Permet de récupérer les informations de son compte utilisateur. Il faut donc être authentifié.",
-            authorizations = {@Authorization(value = "basicAuth")}
-    )
+    @ApiOperation(value = "Récupérer les informations sur un utilisateur")
     @ApiResponses({
             @ApiResponse(code = 200, message = "Succès de la récupération des données utilisateur"),
-            @ApiResponse(code = 400, message = "Le format de l'authentification dans le header est invalide"),
-            @ApiResponse(code = 401, message = "L'authentification a échoué, mot de passe invalide"),
             @ApiResponse(code = 404, message = "Utilisateur introuvable")
     })
     public Response recuperer(
-            @ApiParam(value = "Le format est \"Basic <username:password in base64>\"") @HeaderParam("authorization") String authorization,
             @ApiParam(value = "Le username de l'utilisateur dont on veut récupérer les informations") @NotBlank() @PathParam("username") String username) {
-        try {
-            Optional<Utilisateur> u = PasswordUtils.authentifierUtilisateur(authorization, em);
-            if (u.isPresent()) {
-
-                Optional<Utilisateur> optionalUtilisateur = QueryUtils.trouverUtilisateur(username, em);
-                if (optionalUtilisateur.isPresent()) {
-                    Utilisateur userToGet = optionalUtilisateur.get();
-                    if (hasPermissionToManage(u.get(), userToGet)) {
-                        return Response.ok(userToGet).build();
-                    } else {
-                        return Response.status(Response.Status.UNAUTHORIZED).build();
-                    }
-                } else {
-                    return Response.status(Response.Status.NOT_FOUND).build();
-                }
-            } else {
-                return Response.status(Response.Status.UNAUTHORIZED).build();
-            }
-        } catch (NotFoundException e) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
-        } catch (InvalidAuthorizationException e) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+        Optional<Utilisateur> optionalUtilisateur = QueryUtils.trouverUtilisateur(username, em);
+        if (optionalUtilisateur.isPresent()) {
+            Utilisateur userToGet = optionalUtilisateur.get();
+            return Response.ok(userToGet).build();
+        } else {
+            return Response.status(Response.Status.NOT_FOUND).build();
         }
     }
 

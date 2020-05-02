@@ -24,7 +24,7 @@ import java.util.List;
 
 @Entity
 @ApiModel(description = "La quantité associée à un ingrédient")
-@JsonIgnoreProperties({ "hash", "salt" })
+@JsonIgnoreProperties({ "id", "hash", "salt" })
 public class Utilisateur {
     @Id
     @GeneratedValue(strategy= GenerationType.IDENTITY)
@@ -277,5 +277,13 @@ public class Utilisateur {
 
     public void setNotes(Collection<Note> notes) {
         this.notes = notes;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 }
