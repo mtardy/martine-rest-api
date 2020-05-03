@@ -28,7 +28,8 @@ public class PingTest {
 
     @Test
     public void ping() {
-        assertEquals(Response.Status.OK.getStatusCode(), ping.ping().getStatus());
-        assertEquals("pong!", ping.ping().getEntity());
+        Response response = ping.ping();
+        assertEquals(Response.Status.OK.getStatusCode(), response.getStatus());
+        assertEquals("pong!", response.getEntity());
     }
 }
