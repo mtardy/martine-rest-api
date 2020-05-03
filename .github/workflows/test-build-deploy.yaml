@@ -1,0 +1,62 @@
+name: Test, Build and Deploy
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+      - name: Test project with Maven
+        run: mvn -B test --file pom.xml
+
+  build:
+    name: Build
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+      - name: Build project with Maven
+        run: mvn -B package -DskipTests --file pom.xml
+      - name: Build docker image and publish to Github Packages Registry
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: mtardy/martine-rest-api/martine-api
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          dockerfile: Dockerfile
+          tags: latest
+
+  deploy:
+    name: Deploy
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy docker image on server
+        uses: appleboy/ssh-action@master
+        env:
+          GITHUB_USERNAME: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          envs: GITHUB_USERNAME, GITHUB_TOKEN
+          script: |
+            docker stop $(docker ps -a -q)
+            docker rm $(docker ps -a -q)
+            docker login -u $GITHUB_USERNAME -p $GITHUB_TOKEN docker.pkg.github.com
+            docker pull docker.pkg.github.com/mtardy/martine-rest-api/martine-api:latest
+            docker run -dit -p 8080:8080 --name martine-api-container --restart always docker.pkg.github.com/mtardy/martine-rest-api/martine-api:latest

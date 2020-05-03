@@ -5,8 +5,14 @@
     <container containerId="container.arquillian.embedded.jboss.as.6.x" name="JBoss AS Embedded 6.x">
       <maven-library groupId="org.jboss.arquillian.container" artifactId="arquillian-jbossas-embedded-6" version="RELEASE" />
     </container>
-    <container containerId="container.arquillian.managed.jboss.as.6.x" name="JBoss AS Managed 6.x">
-      <maven-library groupId="org.jboss.arquillian.container" artifactId="arquillian-jbossas-managed-6" version="RELEASE" />
+    <container containerId="container.arquillian.remote.wildFly" name="WildFly Remote">
+      <maven-library groupId="org.wildfly.arquillian" artifactId="wildfly-arquillian-container-remote" version="RELEASE" />
+    </container>
+    <container containerId="container.arquillian.managed.wildFly" name="WildFly Managed">
+      <maven-library groupId="org.wildfly.arquillian" artifactId="wildfly-arquillian-container-managed" version="RELEASE" />
+    </container>
+    <container containerId="container.arquillian.embedded.jboss.as.6.x" name="JBoss AS Embedded 6.x (1)">
+      <maven-library groupId="org.jboss.arquillian.container" artifactId="arquillian-jbossas-embedded-6" version="RELEASE" />
     </container>
   </component>
 </project>
