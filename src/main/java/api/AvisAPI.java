@@ -56,7 +56,7 @@ public class AvisAPI {
                 Recette recette = em.find(Recette.class, id);
                 if (recette != null) {
                     LocalDateTime date = LocalDateTime.now(ZoneId.of("Europe/Paris"));
-                    Commentaire commentaire = new Commentaire(id, date, texte);
+                    Commentaire commentaire = new Commentaire(recette, date, texte);
                     commentaire.setAuteur(utilisateur);
                     em.persist(commentaire);
                     recette.addCommentaire(commentaire);
@@ -170,7 +170,7 @@ public class AvisAPI {
                 Recette recette = em.find(Recette.class, id);
                 if (recette != null) {
                     LocalDateTime date = LocalDateTime.now(ZoneId.of("Europe/Paris"));
-                    Note note = new Note(id, date, valeur);
+                    Note note = new Note(recette, date, valeur);
                     note.setAuteur(utilisateur);
                     em.persist(note);
 

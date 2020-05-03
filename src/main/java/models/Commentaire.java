@@ -19,9 +19,9 @@ public class Commentaire extends Avis {
     public Commentaire() {
     }
 
-    public Commentaire(int recetteId, LocalDateTime date,
+    public Commentaire(Recette recette, LocalDateTime date,
                        @NotBlank @Length(min = 1, max = 512) String texte) {
-        super(recetteId, date);
+        super(recette, date);
         this.texte = texte;
     }
 

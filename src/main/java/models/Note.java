@@ -19,8 +19,8 @@ public class Note extends Avis {
     public Note() {
     }
 
-    public Note(int recetteId, LocalDateTime date, @Min(0) @Max(10) int valeur) {
-        super(recetteId, date);
+    public Note(Recette recette, LocalDateTime date, @Min(0) @Max(10) int valeur) {
+        super(recette, date);
         this.valeur = valeur;
     }
 

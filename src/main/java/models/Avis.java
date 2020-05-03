@@ -14,8 +14,20 @@ public abstract class Avis {
     @ApiModelProperty(hidden = true)
     private int id;
 
+    @JsonIgnore
     @NotNull
-    private int recetteId;
+    @ManyToOne
+    private Recette recette;
+
+    @ApiModelProperty(value = "L'identifiant de la recette concernée", hidden = true)
+    public int getRecetteId() {
+        return recette.getId();
+    }
+
+    @ApiModelProperty(value = "Le nom de la recette concernée", hidden = true)
+    public String getRecetteNom() {
+        return recette.getNom();
+    }
 
     @JsonIgnore
     @NotNull
@@ -38,12 +50,10 @@ public abstract class Avis {
     public Avis() {
     }
 
-    public Avis(int recetteId, LocalDateTime date) {
+    public Avis(Recette recette, LocalDateTime date) {
         this.date = date;
-        this.recetteId = recetteId;
+        this.recette = recette;
     }
-
-
 
     abstract void removeReferences(Recette r, Utilisateur u );
 
@@ -53,14 +63,6 @@ public abstract class Avis {
 
     public void setId(int id) {
         this.id = id;
-    }
-
-    public int getRecetteId() {
-        return recetteId;
-    }
-
-    public void setRecetteId(int recetteId) {
-        this.recetteId = recetteId;
     }
 
     public LocalDateTime getDate() {
@@ -77,5 +79,13 @@ public abstract class Avis {
 
     public void setAuteur(Utilisateur auteur) {
         this.auteur = auteur;
+    }
+
+    public Recette getRecette() {
+        return recette;
+    }
+
+    public void setRecette(Recette recette) {
+        this.recette = recette;
     }
 }
