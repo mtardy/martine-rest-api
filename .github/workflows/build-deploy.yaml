@@ -45,4 +45,5 @@ jobs:
             docker stop $(docker ps -a -q)
             docker rm $(docker ps -a -q)
             docker login -u $GITHUB_USERNAME -p $GITHUB_TOKEN docker.pkg.github.com
+            docker pull docker.pkg.github.com/mtardy/martine-rest-api/martine-api:latest
             docker run -dit -p 8080:8080 --name martine-api-container --restart always docker.pkg.github.com/mtardy/martine-rest-api/martine-api:latest
