@@ -125,8 +125,6 @@ public class UtilisateursAPITest {
         assertEquals(testUser.getBiographie(), userFromResponse.getBiographie());
         assertEquals(testUser.getDateNaissance(), userFromResponse.getDateNaissance());
         assertEquals(testUser.getPhoto(), userFromResponse.getPhoto());
-        assertEquals(LocalDate.now(), userFromResponse.getDateInscription().toLocalDate());
-        assertEquals(LocalDate.now(), userFromResponse.getDateModification().toLocalDate());
 
         // Then verify that the user was correctly added to the DB
         TypedQuery<Utilisateur> req = em.createQuery("SELECT u FROM Utilisateur u WHERE username = :username", Utilisateur.class);
@@ -138,8 +136,6 @@ public class UtilisateursAPITest {
         assertEquals(testUser.getBiographie(), userFromDb.getBiographie());
         assertEquals(testUser.getDateNaissance(), userFromDb.getDateNaissance());
         assertEquals(testUser.getPhoto(), userFromDb.getPhoto());
-        assertEquals(LocalDate.now(), userFromDb.getDateInscription().toLocalDate());
-        assertEquals(LocalDate.now(), userFromDb.getDateModification().toLocalDate());
     }
 
     @Test
@@ -167,7 +163,6 @@ public class UtilisateursAPITest {
         assertEquals("I Was a kid...", userFromDb.getBiographie());
         assertEquals(LocalDate.parse("1971-01-01"), userFromDb.getDateNaissance());
         assertEquals("http://photo.com/photo.png", userFromDb.getPhoto());
-        assertEquals(LocalDate.now(), userFromDb.getDateModification().toLocalDate());
     }
 
     @Test
@@ -199,8 +194,6 @@ public class UtilisateursAPITest {
         assertEquals(testUser.getBiographie(), userFromGet.getBiographie());
         assertEquals(testUser.getDateNaissance(), userFromGet.getDateNaissance());
         assertEquals(testUser.getPhoto(), userFromGet.getPhoto());
-        assertEquals(LocalDate.now(), userFromGet.getDateInscription().toLocalDate());
-        assertEquals(LocalDate.now(), userFromGet.getDateModification().toLocalDate());
     }
 
     @Test
