@@ -50,8 +50,8 @@ public class Recette {
     private String photo;
 
     @ApiModelProperty(value = "Les étapes de préparation de la recette", example = "Casser les oeufs...")
-    @Column(length = 512)
-    @Length(max = 512)
+    @Column(length = 2048)
+    @Length(max = 2048)
     private String preparation;
 
     @ApiModelProperty(value = "Le nombre de part de la recette", example = "4")
