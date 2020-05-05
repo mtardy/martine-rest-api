@@ -59,4 +59,4 @@ jobs:
             docker rm $(docker ps -a -q)
             docker login -u $GITHUB_USERNAME -p $GITHUB_TOKEN docker.pkg.github.com
             docker pull docker.pkg.github.com/mtardy/martine-rest-api/martine-api:latest
-            docker run -dit -p 8080:8080 --name martine-api-container --restart always docker.pkg.github.com/mtardy/martine-rest-api/martine-api:latest
+            docker run -dit -p 8080:8080 --name martine-api-container --restart always --env JAVA_OPTS="-Xms64m -Xmx256 -XX:MetaspaceSize=96M -XX:MaxMetaspaceSize=256m -Djava.net.preferIPv4Stack=true -Djboss.modules.system.pkgs=$JBOSS_MODULES_SYSTEM_PKGS -Djava.awt.headless=true" docker.pkg.github.com/mtardy/martine-rest-api/martine-api:latest
