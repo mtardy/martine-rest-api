@@ -6,12 +6,14 @@ import martine.models.Commentaire;
 import martine.models.Note;
 import martine.models.Recette;
 import martine.models.Utilisateur;
+import martine.models.format.UtilisateurCompact;
 import org.hibernate.validator.constraints.Length;
 import martine.utils.PasswordUtils;
 
 import javax.ejb.Singleton;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
@@ -20,7 +22,9 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 
 @Singleton
@@ -169,6 +173,18 @@ public class AvisAPI {
                 Utilisateur utilisateur = u.get();
                 Recette recette = em.find(Recette.class, id);
                 if (recette != null) {
+                    // Try to find if this user already rated this recipe
+                    TypedQuery<Note> req = em.createQuery("select n from Note n where n.recette = :recette and n.auteur = :auteur", Note.class);
+                    req.setParameter("recette", recette);
+                    req.setParameter("auteur", utilisateur);
+                    List<Note> notes = req.getResultList();
+                    // If yes, remove the previous rate and replace it with the new one
+                    if (notes.size() != 0) {
+                        Note n = notes.get(0);
+                        n.removeReferences(recette, utilisateur);
+                        em.remove(n);
+                    }
+
                     LocalDateTime date = LocalDateTime.now(ZoneId.of("Europe/Paris"));
                     Note note = new Note(recette, date, valeur);
                     note.setAuteur(utilisateur);

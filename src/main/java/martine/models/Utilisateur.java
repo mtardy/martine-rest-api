@@ -94,7 +94,7 @@ public class Utilisateur {
     @Valid
     private Collection<Commentaire> commentaires;
 
-    @ApiModelProperty(value = "La liste des commentaires de l'utilisateur")
+    @ApiModelProperty(value = "La liste des notes de l'utilisateur")
     @OneToMany(mappedBy = "auteur")
     @LazyCollection(LazyCollectionOption.FALSE)
     @Valid
