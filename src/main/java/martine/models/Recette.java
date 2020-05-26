@@ -2,11 +2,11 @@ package martine.models;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.annotations.ApiModelProperty;
+import martine.utils.QueryUtils;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.URL;
-import martine.utils.QueryUtils;
 
 import javax.persistence.*;
 import javax.validation.Valid;

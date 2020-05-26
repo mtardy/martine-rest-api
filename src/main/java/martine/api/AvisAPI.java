@@ -1,11 +1,14 @@
 package martine.api;
 
-import martine.erreurs.InvalidAuthorizationException;
 import io.swagger.annotations.*;
-import martine.models.*;
+import martine.erreurs.InvalidAuthorizationException;
+import martine.models.Commentaire;
+import martine.models.Note;
+import martine.models.Recette;
+import martine.models.Utilisateur;
 import martine.utils.QueryUtils;
-import org.hibernate.validator.constraints.Length;
 import martine.utils.SecurityUtils;
+import org.hibernate.validator.constraints.Length;
 
 import javax.ejb.Singleton;
 import javax.persistence.EntityManager;

@@ -1,10 +1,9 @@
 package martine.api;
 
-import martine.erreurs.InvalidAuthorizationException;
 import io.swagger.annotations.*;
+import martine.erreurs.InvalidAuthorizationException;
 import martine.models.*;
 import martine.models.format.RecetteCompact;
-import martine.utils.QueryUtils;
 import martine.utils.SecurityUtils;
 
 import javax.ejb.Singleton;

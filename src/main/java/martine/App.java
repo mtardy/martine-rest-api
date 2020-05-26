@@ -1,13 +1,13 @@
 package martine;
 
-import martine.api.AvisAPI;
-import martine.api.Ping;
-import martine.api.RecetteAPI;
-import martine.api.UtilisateursAPI;
 import io.swagger.jaxrs.config.BeanConfig;
 import io.swagger.jaxrs.config.SwaggerContextService;
 import io.swagger.models.Swagger;
 import io.swagger.models.auth.BasicAuthDefinition;
+import martine.api.AvisAPI;
+import martine.api.Ping;
+import martine.api.RecetteAPI;
+import martine.api.UtilisateursAPI;
 import org.jboss.resteasy.plugins.interceptors.CorsFilter;
 
 import javax.ws.rs.ApplicationPath;

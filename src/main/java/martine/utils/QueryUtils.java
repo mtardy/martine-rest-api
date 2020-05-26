@@ -6,7 +6,6 @@ import martine.models.Utilisateur;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
-import javax.ws.rs.NotFoundException;
 import java.util.Optional;
 
 public class QueryUtils {

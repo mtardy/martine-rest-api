@@ -1,18 +1,17 @@
 package martine.api;
 
-import martine.erreurs.InvalidAuthorizationException;
-import martine.erreurs.UsernameIndisponibleErreur;
-import martine.erreurs.UtilisateurMalformeErreur;
 import io.swagger.annotations.*;
 import io.swagger.jaxrs.PATCH;
+import martine.erreurs.UsernameIndisponibleErreur;
+import martine.erreurs.UtilisateurMalformeErreur;
 import martine.models.Favori;
 import martine.models.Recette;
 import martine.models.Utilisateur;
 import martine.models.format.UtilisateurCompact;
+import martine.utils.QueryUtils;
+import martine.utils.SecurityUtils;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.URL;
-import martine.utils.SecurityUtils;
-import martine.utils.QueryUtils;
 
 import javax.ejb.Singleton;
 import javax.persistence.EntityManager;
