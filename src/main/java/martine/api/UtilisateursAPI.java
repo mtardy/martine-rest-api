@@ -5,6 +5,8 @@ import martine.erreurs.UsernameIndisponibleErreur;
 import martine.erreurs.UtilisateurMalformeErreur;
 import io.swagger.annotations.*;
 import io.swagger.jaxrs.PATCH;
+import martine.models.Favori;
+import martine.models.Recette;
 import martine.models.Utilisateur;
 import martine.models.format.UtilisateurCompact;
 import org.hibernate.validator.constraints.Length;
@@ -256,5 +258,91 @@ public class UtilisateursAPI {
             utilisateurCompacts.add(new UtilisateurCompact(u));
         });
         return Response.ok(utilisateurCompacts).build();
+    }
+
+    @POST
+    @Path("/{username}/favoris/{rid}")
+    @Consumes({"application/x-www-form-urlencoded"})
+    @Produces({"application/json"})
+    @ApiOperation(value = "Ajouter une recette aux favoris de l'utilisateur", authorizations = {
+            @Authorization(value = "basicAuth")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Succès de l'ajout du favoris"),
+            @ApiResponse(code = 400, message = "Requête invalide"),
+            @ApiResponse(code = 401, message = "L'authentification a échoué, mot de passe invalide"),
+            @ApiResponse(code = 404, message = "Recette ou utilisateur introuvable")
+    })
+    public Response ajouterFavori(
+            @HeaderParam("authorization") String authorization,
+            @ApiParam(value = "Username de l'utilisateur") @NotBlank @PathParam("username") String username,
+            @ApiParam(value = "Identifiant de la recette") @PathParam("rid") int rid
+    ) {
+        Optional<Response> authorizationErrors = SecurityUtils.handleAuthorization(authorization, username, em);
+        if (authorizationErrors.isPresent()) {
+            return authorizationErrors.get();
+        } else {
+            Optional<Utilisateur> userToAddFavoriteTo = QueryUtils.trouverUtilisateur(username, em);
+            // We can get directly because if authentication was successfull, user exists
+            Utilisateur utilisateur = userToAddFavoriteTo.get();
+
+            Recette recette = em.find(Recette.class, rid);
+            if (recette != null) {
+                // Try to find if this user already fav this recipe
+                TypedQuery<Favori> req = em.createQuery("select f from Favori f where f.recette = :recette and f.proprietaire = :proprietaire", Favori.class);
+                req.setParameter("recette", recette);
+                req.setParameter("proprietaire", utilisateur);
+                List<Favori> favoris = req.getResultList();
+
+                if (favoris.size() == 0) {
+                    Favori favori = new Favori(utilisateur, recette);
+                    em.persist(favori);
+                    return Response.ok(favori).build();
+                }
+
+                return Response.ok(favoris.get(0)).build();
+            } else {
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
+        }
+    }
+
+    @DELETE
+    @Path("/{username}/favoris/{fid}")
+    @Produces({"application/json"})
+    @ApiOperation(value = "Supprimer un favori", authorizations = {
+            @Authorization(value = "basicAuth")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 204, message = "Succès de la suppression du favori"),
+            @ApiResponse(code = 400, message = "Requête invalide"),
+            @ApiResponse(code = 401, message = "L'authentification a échoué, mot de passe invalide"),
+            @ApiResponse(code = 404, message = "Recette, utilisateur ou favori introuvable (bonne chance)")
+    })
+    public Response supprimerFavori(
+            @HeaderParam("authorization") String authorization,
+            @ApiParam(value = "Username de l'utilisateur") @PathParam("username") String username,
+            @ApiParam(value = "Identifiant du favori") @PathParam("fid") int fid
+    ) {
+        Optional<Response> authorizationErrors = SecurityUtils.handleAuthorization(authorization, username, em);
+        if (authorizationErrors.isPresent()) {
+            return authorizationErrors.get();
+        } else {
+            Optional<Utilisateur> userToDeleteFavoriteFrom = QueryUtils.trouverUtilisateur(username, em);
+            // We can get directly because if authentication was successfull, user exists
+            Utilisateur utilisateur = userToDeleteFavoriteFrom.get();
+
+            Favori favori = em.find(Favori.class, fid);
+            if (favori != null) {
+                if (favori.getProprietaire().getUsername() == utilisateur.getUsername()) {
+                    em.remove(favori);
+                    return Response.status(Response.Status.NO_CONTENT).build();
+                } else {
+                    return Response.status(Response.Status.UNAUTHORIZED).build();
+                }
+            } else {
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
+        }
     }
 }

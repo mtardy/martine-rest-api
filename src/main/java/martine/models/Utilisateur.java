@@ -115,6 +115,7 @@ public class Utilisateur {
         this.commentaires = new ArrayList<>();
         this.recettes = new ArrayList<>();
         this.notes = new ArrayList<>();
+        this.favoris = new ArrayList<>();
     }
 
     public void remove(EntityManager em) {
@@ -183,6 +184,14 @@ public class Utilisateur {
     }
 
     public Utilisateur() {
+    }
+
+    public Collection<Favori> getFavoris() {
+        return favoris;
+    }
+
+    public void setFavoris(Collection<Favori> favoris) {
+        this.favoris = favoris;
     }
 
     public String getUsername() {
