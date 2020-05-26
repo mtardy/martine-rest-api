@@ -9,7 +9,7 @@ import martine.models.Utilisateur;
 import martine.models.format.UtilisateurCompact;
 import org.hibernate.validator.constraints.Length;
 import org.hibernate.validator.constraints.URL;
-import martine.utils.PasswordUtils;
+import martine.utils.SecurityUtils;
 import martine.utils.QueryUtils;
 
 import javax.ejb.Singleton;
@@ -79,8 +79,8 @@ public class UtilisateursAPI {
 
         try {
             // Process the user password for storage
-            String salt = PasswordUtils.generateSalt(this.SALT_BYTE_LENGTH).get();
-            String hash = PasswordUtils.hashPassword(password, salt).get();
+            String salt = SecurityUtils.generateSalt(this.SALT_BYTE_LENGTH).get();
+            String hash = SecurityUtils.hashPassword(password, salt).get();
 
             LocalDateTime dateInscription = LocalDateTime.now(ZoneId.of("Europe/Paris"));
 
@@ -138,72 +138,61 @@ public class UtilisateursAPI {
             @Length(max = 255) @URL @ApiParam(value = "Le lien vers la nouvelle photo") @FormParam("photo") String photo,
             @Length(max = 255) @Email @ApiParam(value = "Le nouvel email") @FormParam("email") String email,
             @ApiParam(value = "Le format est \"Basic <username:password in base64>\"") @HeaderParam("authorization") String authorization,
-            @ApiParam(value = "Le username de l'utilisateur à modifier") @NotBlank @PathParam("username") String username) {
-        try {
-            Optional<Utilisateur> u = PasswordUtils.authentifierUtilisateur(authorization, em);
-            if (u.isPresent()) {
-                Optional<Utilisateur> optionalUtilisateur = QueryUtils.trouverUtilisateur(username, em);
-                if (optionalUtilisateur.isPresent()) {
-                    Utilisateur userToModify = optionalUtilisateur.get();
-                    if (hasPermissionToManage(u.get(), userToModify)) {
-                        boolean modification = false;
-                        if (password != null) {
-                            String hash = PasswordUtils.hashPassword(password, userToModify.getSalt()).get();
-                            userToModify.setHash(hash);
-                            modification = true;
-                        }
-                        if (fullname != null) {
-                            userToModify.setFullname(fullname);
-                            modification = true;
-                        }
-                        if (biographie != null) {
-                            userToModify.setBiographie(biographie);
-                            modification = true;
-                        }
-                        if (photo != null) {
-                            userToModify.setPhoto(photo);
-                            modification = true;
-                        }
-                        if (email != null) {
-                            userToModify.setEmail(email);
-                            modification = true;
-                        }
-                        if (dateNaissance != null) {
-                            try {
-                                LocalDate parsedDateNaissance = LocalDate.parse(dateNaissance);
-                                userToModify.setDateNaissance(parsedDateNaissance);
-                                modification = true;
-                            } catch (DateTimeParseException e) {
-                                return Response
-                                        .status(Response.Status.BAD_REQUEST)
-                                        .entity(new UtilisateurMalformeErreur("La date de naissance n'est pas valide, suivre le format YYYY-MM-DD"))
-                                        .build();
-                            } finally {
-                                if (modification) {
-                                    userToModify.setDateModification(LocalDateTime.now(ZoneId.of("Europe/Paris")));
-                                }
-                            }
-                        }
-
-                        if (modification) {
-                            userToModify.setDateModification(LocalDateTime.now(ZoneId.of("Europe/Paris")));
-                        }
-                        return Response.ok(userToModify).build();
-                    } else {
-                        return Response.status(Response.Status.UNAUTHORIZED).build();
-                    }
-                } else {
-                    return Response.status(Response.Status.NOT_FOUND).build();
-                }
-            } else {
-                return Response.status(Response.Status.UNAUTHORIZED).build();
+            @ApiParam(value = "Le username de l'utilisateur à modifier") @NotBlank @PathParam("username") String username
+    ) {
+        Optional<Response> authorizationErrors = SecurityUtils.handleAuthorization(authorization, username, em);
+        if (authorizationErrors.isPresent()) {
+            return authorizationErrors.get();
+        } else {
+            Optional<Utilisateur> userToModifyOption = QueryUtils.trouverUtilisateur(username, em);
+            // We can get directly because if authentication was successfull, user exists
+            Utilisateur userToModify = userToModifyOption.get();
+            boolean modification = false;
+            if (password != null) {
+                String hash = SecurityUtils.hashPassword(password, userToModify.getSalt()).get();
+                userToModify.setHash(hash);
+                modification = true;
             }
-        } catch (NotFoundException e) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
-        } catch (InvalidAuthorizationException e) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            if (fullname != null) {
+                userToModify.setFullname(fullname);
+                modification = true;
+            }
+            if (biographie != null) {
+                userToModify.setBiographie(biographie);
+                modification = true;
+            }
+            if (photo != null) {
+                userToModify.setPhoto(photo);
+                modification = true;
+            }
+            if (email != null) {
+                userToModify.setEmail(email);
+                modification = true;
+            }
+            if (dateNaissance != null) {
+                try {
+                    LocalDate parsedDateNaissance = LocalDate.parse(dateNaissance);
+                    userToModify.setDateNaissance(parsedDateNaissance);
+                    modification = true;
+                } catch (DateTimeParseException e) {
+                    return Response
+                            .status(Response.Status.BAD_REQUEST)
+                            .entity(new UtilisateurMalformeErreur("La date de naissance n'est pas valide, suivre le format YYYY-MM-DD"))
+                            .build();
+                } finally {
+                    if (modification) {
+                        userToModify.setDateModification(LocalDateTime.now(ZoneId.of("Europe/Paris")));
+                    }
+                }
+            }
+
+            if (modification) {
+                userToModify.setDateModification(LocalDateTime.now(ZoneId.of("Europe/Paris")));
+            }
+            return Response.ok(userToModify).build();
         }
     }
+
 
     @DELETE
     @Path("/{username}")
@@ -220,30 +209,16 @@ public class UtilisateursAPI {
     })
     public Response supprimer(
             @ApiParam(value = "Le format est \"Basic <username:password in base64>\"") @HeaderParam("authorization") String authorization,
-            @ApiParam(value = "Le username de l'utilisateur à supprimer") @NotBlank @PathParam("username") String username) {
-        try {
-            Optional<Utilisateur> u = PasswordUtils.authentifierUtilisateur(authorization, em);
-            if (u.isPresent()) {
-                Optional<Utilisateur> optionalUtilisateur = QueryUtils.trouverUtilisateur(username, em);
-
-                if (optionalUtilisateur.isPresent()) {
-                    Utilisateur userToRemove = optionalUtilisateur.get();
-                    if (hasPermissionToManage(u.get(), userToRemove)) {
-                        userToRemove.remove(em);
-                        return Response.status(Response.Status.NO_CONTENT).build();
-                    } else {
-                        return Response.status(Response.Status.UNAUTHORIZED).build();
-                    }
-                } else {
-                    return Response.status(Response.Status.NOT_FOUND).build();
-                }
-            } else {
-                return Response.status(Response.Status.UNAUTHORIZED).build();
-            }
-        } catch (NotFoundException e) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
-        } catch (InvalidAuthorizationException e) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            @ApiParam(value = "Le username de l'utilisateur à supprimer") @NotBlank @PathParam("username") String username
+    ) {
+        Optional<Response> authorizationErrors = SecurityUtils.handleAuthorization(authorization, username, em);
+        if (authorizationErrors.isPresent()) {
+            return authorizationErrors.get();
+        } else {
+            Optional<Utilisateur> userToRemove = QueryUtils.trouverUtilisateur(username, em);
+            // We can get directly because if authentication was successfull, user exists
+            userToRemove.get().remove(em);
+            return Response.status(Response.Status.NO_CONTENT).build();
         }
     }
 
@@ -281,10 +256,5 @@ public class UtilisateursAPI {
             utilisateurCompacts.add(new UtilisateurCompact(u));
         });
         return Response.ok(utilisateurCompacts).build();
-    }
-
-    private boolean hasPermissionToManage(Utilisateur manager, Utilisateur managed) {
-        // For now it's really simple, there is no special permission
-        return manager.getUsername().equals(managed.getUsername());
     }
 }

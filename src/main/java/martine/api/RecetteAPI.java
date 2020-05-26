@@ -4,7 +4,8 @@ import martine.erreurs.InvalidAuthorizationException;
 import io.swagger.annotations.*;
 import martine.models.*;
 import martine.models.format.RecetteCompact;
-import martine.utils.PasswordUtils;
+import martine.utils.QueryUtils;
+import martine.utils.SecurityUtils;
 
 import javax.ejb.Singleton;
 import javax.persistence.EntityManager;
@@ -196,7 +197,7 @@ public class RecetteAPI {
         recette.setDateModification(date);
 
         try {
-            Optional<Utilisateur> u = PasswordUtils.authentifierUtilisateur(authorization, em);
+            Optional<Utilisateur> u = SecurityUtils.authentifierUtilisateur(authorization, em);
             if (u.isPresent()) {
                 Utilisateur utilisateur = u.get();
                 recette.setAuteur(utilisateur);
@@ -228,24 +229,18 @@ public class RecetteAPI {
             @HeaderParam("authorization") String authorization,
             @ApiParam(value = "Identifiant de la recette") @PathParam("id") int id
     ) {
-        try {
-            Optional<Utilisateur> u = PasswordUtils.authentifierUtilisateur(authorization, em);
-            if (u.isPresent()) {
-                Recette r = em.find(Recette.class, id);
-                if (r != null) {
-                    u.get().removeRecette(r);
-                    r.remove(em);
-                    return Response.status(Response.Status.NO_CONTENT).build();
-                } else {
-                    return Response.status(Response.Status.NOT_FOUND).build();
-                }
+        Optional<Response> authorizationErrors = SecurityUtils.handleAuthorization(authorization, em);
+        if (authorizationErrors.isPresent()) {
+            return authorizationErrors.get();
+        } else {
+            Recette r = em.find(Recette.class, id);
+            if (r != null) {
+                r.getAuteur().removeRecette(r);
+                r.remove(em);
+                return Response.status(Response.Status.NO_CONTENT).build();
             } else {
-                return Response.status(Response.Status.UNAUTHORIZED).build();
+                return Response.status(Response.Status.NOT_FOUND).build();
             }
-        } catch (NotFoundException e) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
-        } catch (InvalidAuthorizationException e) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
         }
     }
 }

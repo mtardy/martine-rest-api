@@ -100,6 +100,12 @@ public class Utilisateur {
     @Valid
     private Collection<Note> notes;
 
+    @ApiModelProperty(value = "La liste des favoris de l'utilisateur")
+    @OneToMany(mappedBy = "proprietaire")
+    @LazyCollection(LazyCollectionOption.FALSE)
+    @Valid
+    private Collection<Favori> favoris;
+
     public Utilisateur(String username,
                        String hash,
                        String salt) {
@@ -162,6 +168,10 @@ public class Utilisateur {
 
     public void removeCommentaire(Commentaire commentaire) {
         this.commentaires.remove(commentaire);
+    }
+
+    public void removeFavori(Favori favori) {
+        this.favoris.remove(favori);
     }
 
     public void addNote(Note note) {

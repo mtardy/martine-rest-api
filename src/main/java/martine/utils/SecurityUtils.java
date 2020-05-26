@@ -7,6 +7,7 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.persistence.EntityManager;
 import javax.ws.rs.NotFoundException;
+import javax.ws.rs.core.Response;
 import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -15,7 +16,7 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Optional;
 
-public class PasswordUtils {
+public class SecurityUtils {
     private static final int ITERATIONS = 65536;
     private static final int KEY_LENGTH = 512;
     private static final String ALGORITHM = "PBKDF2WithHmacSHA512";
@@ -79,7 +80,7 @@ public class PasswordUtils {
     }
 
     public static Optional<Utilisateur> authentifierUtilisateur(String authorization, EntityManager em) throws InvalidAuthorizationException, NotFoundException {
-        String ID = PasswordUtils.decodeAuthorization(authorization);
+        String ID = SecurityUtils.decodeAuthorization(authorization);
         String[] splittedID = ID.split(":");
         String username = splittedID[0];
         String password = splittedID[1];
@@ -87,7 +88,7 @@ public class PasswordUtils {
         Optional<Utilisateur> optionalUtilisateur = QueryUtils.trouverUtilisateur(username, em);
         if (optionalUtilisateur.isPresent()) {
             Utilisateur u = optionalUtilisateur.get();
-            if (PasswordUtils.verifyPassword(password, u.getHash(), u.getSalt())) {
+            if (SecurityUtils.verifyPassword(password, u.getHash(), u.getSalt())) {
                 return Optional.of(u);
             } else {
                 return Optional.empty();
@@ -95,5 +96,67 @@ public class PasswordUtils {
         } else {
             throw new NotFoundException();
         }
+    }
+
+    // This is bad design and should be handled correctly with a container request filter
+    // On top of that it often double the "trouver utilisateur" request, one for authentication, one for the method
+
+    /**
+     * Handle the authorization and match username with the username in the authorization string
+     * @param authorization the authorization string in the request header
+     * @param username      the username of the user to manage
+     * @param em            the entity manager
+     * @return an option on the response to send in case of error, empty option otherwise
+     */
+    public static Optional<Response> handleAuthorization(String authorization, String username, EntityManager em) {
+        try {
+            Optional<Utilisateur> u = SecurityUtils.authentifierUtilisateur(authorization, em);
+            if (u.isPresent()) {
+                Optional<Utilisateur> optionalUtilisateur = QueryUtils.trouverUtilisateur(username, em);
+
+                if (optionalUtilisateur.isPresent()) {
+                    Utilisateur user = optionalUtilisateur.get();
+                    if (hasPermissionToManage(u.get(), user)) {
+                        return Optional.empty();
+                    } else {
+                        return Optional.of(Response.status(Response.Status.UNAUTHORIZED).build());
+                    }
+                } else {
+                    return Optional.of(Response.status(Response.Status.NOT_FOUND).build());
+                }
+            } else {
+                return Optional.of(Response.status(Response.Status.UNAUTHORIZED).build());
+            }
+        } catch (NotFoundException e) {
+            return Optional.of(Response.status(Response.Status.UNAUTHORIZED).build());
+        } catch (InvalidAuthorizationException e) {
+            return Optional.of(Response.status(Response.Status.BAD_REQUEST).build());
+        }
+    }
+
+    /**
+     * Handle the authorization
+     * @param authorization the authorization string in the request header
+     * @param em            the entity manager
+     * @return an option on the response to send in case of error, empty option otherwise
+     */
+    public static Optional<Response> handleAuthorization(String authorization, EntityManager em) {
+        try {
+            Optional<Utilisateur> u = SecurityUtils.authentifierUtilisateur(authorization, em);
+            if (u.isPresent()) {
+                return Optional.empty();
+            } else {
+                return Optional.of(Response.status(Response.Status.UNAUTHORIZED).build());
+            }
+        } catch (NotFoundException e) {
+            return Optional.of(Response.status(Response.Status.UNAUTHORIZED).build());
+        } catch (InvalidAuthorizationException e) {
+            return Optional.of(Response.status(Response.Status.BAD_REQUEST).build());
+        }
+    }
+
+    public static boolean hasPermissionToManage(Utilisateur manager, Utilisateur managed) {
+        // For now it's really simple, there is no special permission
+        return manager.getUsername().equals(managed.getUsername());
     }
 }

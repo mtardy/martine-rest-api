@@ -2,13 +2,10 @@ package martine.api;
 
 import martine.erreurs.InvalidAuthorizationException;
 import io.swagger.annotations.*;
-import martine.models.Commentaire;
-import martine.models.Note;
-import martine.models.Recette;
-import martine.models.Utilisateur;
-import martine.models.format.UtilisateurCompact;
+import martine.models.*;
+import martine.utils.QueryUtils;
 import org.hibernate.validator.constraints.Length;
-import martine.utils.PasswordUtils;
+import martine.utils.SecurityUtils;
 
 import javax.ejb.Singleton;
 import javax.persistence.EntityManager;
@@ -22,7 +19,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -53,9 +49,13 @@ public class AvisAPI {
             @ApiParam(value = "Identifiant de la recette") @PathParam("id") int id,
             @NotBlank @Length(min=1, max=512) @ApiParam(value = "Contenu du commentaire") @FormParam("texte") String texte
     ) {
-        try {
-            Optional<Utilisateur> u = PasswordUtils.authentifierUtilisateur(authorization, em);
-            if (u.isPresent()) {
+        Optional<Response> authorizationErrors = SecurityUtils.handleAuthorization(authorization, em);
+        if (authorizationErrors.isPresent()) {
+            return authorizationErrors.get();
+        } else {
+            try {
+                Optional<Utilisateur> u = QueryUtils.trouverUtilisateurAuthorization(authorization, em);
+                // We can get directly because if authentication was successfull, user exists
                 Utilisateur utilisateur = u.get();
                 Recette recette = em.find(Recette.class, id);
                 if (recette != null) {
@@ -69,15 +69,9 @@ public class AvisAPI {
                 } else {
                     return Response.status(Response.Status.NOT_FOUND).build();
                 }
-
-            } else {
-                return Response.status(Response.Status.UNAUTHORIZED).build();
+            } catch (InvalidAuthorizationException e) {
+                return Response.status(Response.Status.BAD_REQUEST).build();
             }
-
-        } catch (NotFoundException e) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
-        } catch (InvalidAuthorizationException e) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
         }
     }
 
@@ -98,9 +92,13 @@ public class AvisAPI {
             @ApiParam(value = "Identifiant de la recette") @PathParam("id") int id,
             @ApiParam(value = "Identifiant du commentaire") @PathParam("cid") int cid
     ) {
-        try {
-            Optional<Utilisateur> u = PasswordUtils.authentifierUtilisateur(authorization, em);
-            if (u.isPresent()) {
+        Optional<Response> authorizationErrors = SecurityUtils.handleAuthorization(authorization, em);
+        if (authorizationErrors.isPresent()) {
+            return authorizationErrors.get();
+        } else {
+            try {
+                Optional<Utilisateur> u = QueryUtils.trouverUtilisateurAuthorization(authorization, em);
+                // We can get directly because if authentication was successfull, user exists
                 Utilisateur utilisateur = u.get();
                 Recette recette = em.find(Recette.class, id);
                 if (recette != null) {
@@ -119,15 +117,9 @@ public class AvisAPI {
                 } else {
                     return Response.status(Response.Status.NOT_FOUND).build();
                 }
-
-            } else {
-                return Response.status(Response.Status.UNAUTHORIZED).build();
+            } catch (InvalidAuthorizationException e) {
+                return Response.status(Response.Status.BAD_REQUEST).build();
             }
-
-        } catch (NotFoundException e) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
-        } catch (InvalidAuthorizationException e) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
         }
     }
 
@@ -167,9 +159,13 @@ public class AvisAPI {
             @ApiParam(value = "Identifiant de la recette") @PathParam("id") int id,
             @NotNull @Min(0) @Max(10) @ApiParam(value = "valeur de la note, entier compris entre 0 et 10") @FormParam("valeur") int valeur
     ) {
-        try {
-            Optional<Utilisateur> u = PasswordUtils.authentifierUtilisateur(authorization, em);
-            if (u.isPresent()) {
+        Optional<Response> authorizationErrors = SecurityUtils.handleAuthorization(authorization, em);
+        if (authorizationErrors.isPresent()) {
+            return authorizationErrors.get();
+        } else {
+            try {
+                Optional<Utilisateur> u = QueryUtils.trouverUtilisateurAuthorization(authorization, em);
+                // We can get directly because if authentication was successfull, user exists
                 Utilisateur utilisateur = u.get();
                 Recette recette = em.find(Recette.class, id);
                 if (recette != null) {
@@ -196,13 +192,9 @@ public class AvisAPI {
                 } else {
                     return Response.status(Response.Status.NOT_FOUND).build();
                 }
-            } else {
-                return Response.status(Response.Status.UNAUTHORIZED).build();
+            } catch (InvalidAuthorizationException e) {
+                return Response.status(Response.Status.BAD_REQUEST).build();
             }
-        } catch (NotFoundException e) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
-        } catch (InvalidAuthorizationException e) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
         }
     }
 
@@ -223,9 +215,13 @@ public class AvisAPI {
             @ApiParam(value = "Identifiant de la recette") @PathParam("id") int id,
             @ApiParam(value = "Identifiant de la note") @PathParam("nid") int nid
     ) {
-        try {
-            Optional<Utilisateur> u = PasswordUtils.authentifierUtilisateur(authorization, em);
-            if (u.isPresent()) {
+        Optional<Response> authorizationErrors = SecurityUtils.handleAuthorization(authorization, em);
+        if (authorizationErrors.isPresent()) {
+            return authorizationErrors.get();
+        } else {
+            try {
+                Optional<Utilisateur> u = QueryUtils.trouverUtilisateurAuthorization(authorization, em);
+                // We can get directly because if authentication was successfull, user exists
                 Utilisateur utilisateur = u.get();
                 Recette recette = em.find(Recette.class, id);
                 if (recette != null) {
@@ -244,15 +240,9 @@ public class AvisAPI {
                 } else {
                     return Response.status(Response.Status.NOT_FOUND).build();
                 }
-
-            } else {
-                return Response.status(Response.Status.UNAUTHORIZED).build();
+            } catch (InvalidAuthorizationException e) {
+                return Response.status(Response.Status.BAD_REQUEST).build();
             }
-
-        } catch (NotFoundException e) {
-            return Response.status(Response.Status.UNAUTHORIZED).build();
-        } catch (InvalidAuthorizationException e) {
-            return Response.status(Response.Status.BAD_REQUEST).build();
         }
     }
 
