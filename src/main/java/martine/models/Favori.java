@@ -3,6 +3,7 @@ package martine.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import martine.models.format.RecetteCompact;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -22,14 +23,9 @@ public class Favori {
     @ManyToOne
     private Recette recette;
 
-    @ApiModelProperty(value = "L'identifiant de la recette concernée", hidden = true)
-    public int getRecetteId() {
-        return recette.getId();
-    }
-
-    @ApiModelProperty(value = "Le nom de la recette concernée", hidden = true)
-    public String getRecetteNom() {
-        return recette.getNom();
+    @ApiModelProperty(value = "La recette compacte du favori", hidden = true)
+    public RecetteCompact getRecetteCompact() {
+        return new RecetteCompact(recette);
     }
 
     @JsonIgnore
