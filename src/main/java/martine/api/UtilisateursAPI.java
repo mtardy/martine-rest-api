@@ -194,6 +194,30 @@ public class UtilisateursAPI {
         }
     }
 
+    @GET
+    @Path("/login")
+    @Consumes({"application/json"})
+    @Produces({"application/json"})
+    @ApiOperation(value = "Se connecter avec un compte utilisateur",
+            notes = "Permet de vérifier les identifiants de connexion d'un utilisateur.",
+            authorizations = {@Authorization(value = "basicAuth")}
+    )
+    @ApiResponses({
+            @ApiResponse(code = 200, message = "Succès de la connexion de l'utilisateur"),
+            @ApiResponse(code = 400, message = "Le format de l'authentification dans le header est invalide"),
+            @ApiResponse(code = 401, message = "L'authentification a échoué, mot de passe invalide"),
+    })
+    public Response login(
+            @ApiParam(value = "Le format est \"Basic <username:password in base64>\"") @HeaderParam("authorization") String authorization
+    ) {
+        Optional<Response> authorizationErrors = SecurityUtils.handleAuthorization(authorization, em);
+        if (authorizationErrors.isPresent()) {
+            return authorizationErrors.get();
+        } else {
+            return Response.ok().build();
+        }
+    }
+
 
     @DELETE
     @Path("/{username}")
